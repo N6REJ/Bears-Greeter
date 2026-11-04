@@ -3,7 +3,7 @@
 ## Title: Bears Greeter
 ## Notes: Greets guild members the first time they speak in guild chat each day.
 ## Author: Bear (N6REJ)
-## IconTexture: Interface\Icons\INV_Misc_Note_01
+## IconTexture: Interface\Icons\ability_priest_heavanlyvoice
 ## SavedVariables: BearsGreeterDB
 ## X-License: MIT License
 ## X-Curse-Project-ID: 1783140
@@ -11,6 +11,8 @@
 
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
 Libs\AceAddon-3.0\AceAddon-3.0.xml
 Libs\AceEvent-3.0\AceEvent-3.0.xml
 Libs\AceConsole-3.0\AceConsole-3.0.xml

@@ -17,6 +17,7 @@ local defaults = {
         delivery = "GUILD",
         debug = false,
         greeted = {},
+        minimap = { hide = false, minimapPos = 225 },
     },
 }
 
@@ -132,6 +133,48 @@ local function scheduleGreeting(name)
     end
 end
 
+function addon:CreateMinimapButton()
+    if not LDB or not DBIcon then
+        return
+    end
+    if self.minimapDataObject then
+        return
+    end
+    self.minimapDataObject = LDB:NewDataObject(addonName, {
+        type = "data source",
+        text = addonName,
+        icon = "Interface\\Icons\\ability_priest_heavanlyvoice",
+        OnClick = function(_, button)
+            if button == "LeftButton" then
+                addonTable.OpenOptionsDialog()
+            elseif button == "RightButton" then
+                addon:ToggleEnabled()
+            end
+        end,
+        OnTooltipShow = function(tooltip)
+            tooltip:AddLine(addonName)
+            tooltip:AddLine(L["Open options."], 0.8, 0.8, 0.8)
+        end,
+    })
+    DBIcon:Register(addonName, self.minimapDataObject, db.profile.minimap)
+    if db.profile.minimap and db.profile.minimap.hide then
+        DBIcon:Hide(addonName)
+    else
+        DBIcon:Show(addonName)
+    end
+end
+
+function addon:UpdateMinimapButton()
+    if not DBIcon then
+        return
+    end
+    if db.profile.minimap.hide then
+        DBIcon:Hide(addonName)
+    else
+        DBIcon:Show(addonName)
+    end
+end
+
 local function getOnlineGuildMembers()
     local result = {}
     local num = GetNumGuildMembers() or 0
@@ -163,6 +206,7 @@ function addon:OnEnable()
     if IsInGuild() then
         GuildRoster()
     end
+    self:CreateMinimapButton()
     self:Print(L["Loaded. Type /greeter to open options."])
 end
 

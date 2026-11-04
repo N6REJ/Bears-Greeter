@@ -102,6 +102,18 @@ function addonTable.RegisterOptions(addon)
                 get = function() return db().debug end,
                 set = function(_, value) db().debug = value end,
             },
+            minimap = {
+                type = "toggle",
+                order = 8,
+                width = "full",
+                name = L["Show minimap button"],
+                desc = L["Show or hide the minimap button."],
+                get = function() return not db().minimap.hide end,
+                set = function(_, value)
+                    db().minimap.hide = not value
+                    addon:UpdateMinimapButton()
+                end,
+            },
             actionsHeader = {
                 type = "header",
                 order = 10,

@@ -149,7 +149,6 @@ updates. `.github/workflows/curseforge-stats.yml` refreshes download stats in
 - Per-rank or per-member exclusions.
 - Officer chat, party, raid, or instance chat triggers.
 - First-seen tracking across days rather than a daily reset.
-- Minimap button.
 
 ## Limitations
 
