@@ -157,9 +157,13 @@ function addon:UpdateMinimapButtonPosition(button)
 end
 
 function addon:CreateMinimapButton()
-    if self.minimapButton or not _G.Minimap then
+    if self.minimapButton then
         return
     end
+    if not _G.Minimap then
+        return
+    end
+    db.profile.minimap = db.profile.minimap or { hide = false, minimapButtonAngle = 225 }
 
     local button = CreateFrame("Button", "BearsGreeterMinimapButton", _G.Minimap)
     button:SetSize(32, 32)
@@ -273,6 +277,9 @@ function addon:OnDisable()
 end
 
 function addon:PLAYER_ENTERING_WORLD()
+    if not self.minimapButton then
+        self:CreateMinimapButton()
+    end
     if IsInGuild() then
         RequestGuildRoster()
     end
@@ -366,7 +373,9 @@ end
 local function handleSlash(input)
     input = (input or ""):trim():lower()
     if input == "" then
-        addonTable.OpenOptionsDialog()
+        if addon.OpenOptionsDialog then
+            addon.OpenOptionsDialog()
+        end
     elseif input == "test" then
         addon:SendTestGreeting()
     elseif input == "reset" then
@@ -382,3 +391,4 @@ end
 
 addon:RegisterChatCommand("greeter", handleSlash)
 addon:RegisterChatCommand("bgreet", handleSlash)
+addon:RegisterChatCommand("bg", handleSlash)
