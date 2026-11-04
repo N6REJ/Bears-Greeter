@@ -2,7 +2,7 @@
 
 [![WoW Version](https://img.shields.io/badge/WoW-12.1.5-darkgreen)](https://worldofwarcraft.blizzard.com/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![GitHub](https://img.shields.io/badge/GitHub-Source-blue?logo=github)](https://github.com/N6REJ/Bears-Greeter)
 
-Greets each guild member the first time they speak in guild chat each day.
+Greets each guild member the first time they are seen each day.
 
 Bears Greeter is a small World of Warcraft retail addon. It listens for guild
 chat, remembers who has already been greeted today, and sends one greeting per
@@ -16,11 +16,13 @@ additional greeting rules.
 
 Working baseline. The default behavior is:
 
-- A guild member speaks in guild chat.
-- If the member has not been greeted today, send `Welcome back, <name>!` to
-  guild chat.
-- Remember the member until the next calendar day.
-- Ignore messages from the player.
+- A guild member comes online (or speaks in guild chat, depending on the
+  trigger setting).
+- If the member has not been greeted within the cache window, wait the
+  configured delay, then send the greeting.
+- Remember the member for the configured cache time (24 hours means until the
+  calendar day changes).
+- Ignore the player themselves.
 
 ## Requirements
 
@@ -80,7 +82,10 @@ character on the same realm is only greeted once per day.
 | Option | Description |
 | --- | --- |
 | Enable greetings | Turn automatic greetings on or off. |
-| Greeting message | Template sent to chat. `%s` is replaced with the member's name. |
+| Trigger | Greet on login (on join) or on first guild chat message. |
+| Delay (seconds) | Seconds to wait after a member is seen before sending. |
+| Cache time (hours) | How long a member is remembered. 24 means until the calendar day changes. |
+| Greeting message | Template sent to chat. `<name>` is replaced with the member's name. |
 | Delivery | Send to guild chat or whisper the member. |
 | Debug messages | Print a local message after each greeting. |
 | Test | Send a test greeting using the current settings. |
@@ -90,15 +95,15 @@ Defaults are saved per Blizzard account in `BearsGreeterDB`.
 
 ## How it works
 
-`CHAT_MSG_GUILD` provides the speaker's name. The addon normalizes it with
-`Ambiguate` (falling back to the part before the realm separator), checks the
-saved `greeted` table for today, and sends the greeting through
-`SendChatMessage`. The member is marked as greeted before sending, so a burst of
-messages cannot produce duplicate greetings.
+In login trigger mode the addon watches `GUILD_ROSTER_UPDATE` for members coming
+online; in guild chat mode it listens to `CHAT_MSG_GUILD`. Either way the member
+is normalized with `Ambiguate`, checked against the cache, marked as greeted
+before sending, and greeted after the configured delay. Greetings go out through
+`SendChatMessage` to guild chat or as a whisper.
 
-The daily key is `date("%Y-%m-%d")`. The table is cleared on
-`PLAYER_ENTERING_WORLD` when the date changes, and whenever the addon loads on a
-new day.
+The cache key is either the calendar day (when cache time is 24 hours) or a
+rolling time window of the configured number of hours. Expired entries are
+pruned on load and on `PLAYER_ENTERING_WORLD`.
 
 ## File layout
 

@@ -4,173 +4,279 @@ local AceAddon = LibStub("AceAddon-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
 local addon = AceAddon:NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0")
-addonTable.addon = addon
 
-local DEFAULT_MESSAGE = L["Welcome back, %s!"]
+local db
 
 local defaults = {
     profile = {
         enabled = true,
-        message = DEFAULT_MESSAGE,
-        -- "GUILD" or "WHISPER"
+        trigger = "login", -- "login" or "guildchat"
+        delay = 5,
+        cacheHours = 24,
+        message = "Welcome back, <name>!",
         delivery = "GUILD",
-        -- Roster is reset when the calendar day changes.
-        greetedDate = "",
-        greeted = {},
         debug = false,
+        greeted = {},
     },
 }
 
-local function TodayKey()
+-- Per-session state.
+local knownOnline = {}
+local initialRosterLoaded = false
+local pending = {}
+
+local function todayKey()
     return date("%Y-%m-%d")
 end
 
-local function ShortName(name)
-    if type(name) ~= "string" or name == "" then
-        return nil
-    end
+local function cacheEntry(name)
+    return db.profile.greeted[name]
+end
 
-    if Ambiguate then
-        local short = Ambiguate(name, "short")
-        if short and short ~= "" then
-            return short
+local function isCached(name)
+    local entry = cacheEntry(name)
+    if not entry then
+        return false
+    end
+    local cacheHours = db.profile.cacheHours or 24
+    if cacheHours == 24 then
+        -- 24 hours means "until the calendar day changes", not a rolling window.
+        return entry.date == todayKey()
+    end
+    local ts = entry.ts or 0
+    return (time() - ts) < (cacheHours * 3600)
+end
+
+local function markCached(name)
+    db.profile.greeted[name] = { ts = time(), date = todayKey() }
+end
+
+local function clearExpired()
+    if not db or not db.profile or not db.profile.greeted then
+        return
+    end
+    local now = time()
+    local cacheHours = db.profile.cacheHours or 24
+    for name, entry in pairs(db.profile.greeted) do
+        local expired = false
+        if cacheHours == 24 then
+            expired = (not entry or entry.date ~= todayKey())
+        else
+            expired = (not entry or (now - (entry.ts or 0)) >= (cacheHours * 3600))
+        end
+        if expired then
+            db.profile.greeted[name] = nil
         end
     end
+end
 
-    return name:match("^([^%-]+)") or name
+local function formatMessage(name)
+    local template = db.profile.message
+    if not template or template == "" then
+        template = "Welcome back, <name>!"
+    end
+    local msg = template:gsub("<[Nn]ame>", name)
+    msg = msg:gsub("%%s", name)
+    return msg
+end
+
+local function doSend(name)
+    if not db.profile.enabled then
+        pending[name] = nil
+        return
+    end
+    if name == UnitName("player") then
+        pending[name] = nil
+        return
+    end
+    local msg = formatMessage(name)
+    if db.profile.delivery == "WHISPER" then
+        SendChatMessage(msg, "WHISPER", nil, name)
+    else
+        SendChatMessage(msg, "GUILD")
+    end
+    if db.profile.debug then
+        addon:Print(string.format(L["Greeted %s."], name))
+    end
+    pending[name] = nil
+end
+
+local function scheduleGreeting(name)
+    if not db.profile.enabled then
+        return
+    end
+    if name == UnitName("player") then
+        return
+    end
+    if isCached(name) then
+        return
+    end
+    if pending[name] then
+        return
+    end
+    -- Mark as greeted before sending so repeated triggers cannot duplicate.
+    markCached(name)
+    pending[name] = true
+
+    local delay = tonumber(db.profile.delay) or 0
+    if delay < 0 then
+        delay = 0
+    end
+
+    if delay == 0 then
+        doSend(name)
+    else
+        C_Timer.After(delay, function()
+            doSend(name)
+        end)
+    end
+end
+
+local function getOnlineGuildMembers()
+    local result = {}
+    local num = GetNumGuildMembers() or 0
+    for i = 1, num do
+        local name, _, _, _, _, _, _, _, online = GetGuildRosterInfo(i)
+        if name and online then
+            local short = Ambiguate(name, "short")
+            if not short or short == "" then
+                short = name:match("^[^%-]+") or name
+            end
+            result[short] = true
+        end
+    end
+    return result
 end
 
 function addon:OnInitialize()
-    self.db = LibStub("AceDB-3.0"):New("BearsGreeterDB", defaults, true)
-    self:EnsureToday()
-    addonTable.RegisterOptions(self)
-
-    self:RegisterChatCommand("greeter", "HandleSlashCommand")
-    self:RegisterChatCommand("bgreet", "HandleSlashCommand")
-
-    self:Print(L["Loaded. Type /greeter to open options."])
+    db = LibStub("AceDB-3.0"):New("BearsGreeterDB", defaults, true)
+    addon.db = db
+    addonTable.RegisterOptions(addon)
 end
 
 function addon:OnEnable()
-    self:RegisterEvent("PLAYER_ENTERING_WORLD", "OnPlayerEnteringWorld")
-
-    -- Add more CHAT_MSG_* events here if the greeting should react to them.
-    self:RegisterEvent("CHAT_MSG_GUILD", "OnGuildChat")
+    clearExpired()
+    self:RegisterEvent("PLAYER_ENTERING_WORLD")
+    self:RegisterEvent("GUILD_ROSTER_UPDATE")
+    self:RegisterEvent("CHAT_MSG_GUILD")
+    -- Request an initial roster so login detection has a baseline.
+    if IsInGuild() then
+        GuildRoster()
+    end
+    self:Print(L["Loaded. Type /greeter to open options."])
 end
 
-function addon:OnPlayerEnteringWorld()
-    self:EnsureToday()
+function addon:OnDisable()
+    -- nothing
 end
 
-function addon:EnsureToday()
-    local profile = self.db and self.db.profile
-    if not profile then
+function addon:PLAYER_ENTERING_WORLD()
+    if IsInGuild() then
+        GuildRoster()
+    end
+    -- Reset per-session online tracking so a reload does not re-greet everyone.
+    wipe(knownOnline)
+    initialRosterLoaded = false
+    clearExpired()
+end
+
+function addon:GUILD_ROSTER_UPDATE()
+    if db.profile.trigger ~= "login" then
         return
     end
-
-    local today = TodayKey()
-    if profile.greetedDate ~= today then
-        profile.greetedDate = today
-        profile.greeted = {}
+    if not IsInGuild() then
+        return
     end
-
-    profile.greeted = profile.greeted or {}
+    local current = getOnlineGuildMembers()
+    if not initialRosterLoaded then
+        for name in pairs(current) do
+            knownOnline[name] = true
+        end
+        initialRosterLoaded = true
+        return
+    end
+    for name in pairs(current) do
+        if not knownOnline[name] then
+            knownOnline[name] = true
+            scheduleGreeting(name)
+        end
+    end
+    for name in pairs(knownOnline) do
+        if not current[name] then
+            knownOnline[name] = nil
+        end
+    end
 end
 
-function addon:IsGreeted(name)
-    local key = name and name:lower()
-    return key and self.db.profile.greeted[key] == true or false
+function addon:CHAT_MSG_GUILD(message, sender)
+    if db.profile.trigger ~= "guildchat" then
+        return
+    end
+    if not db.profile.enabled then
+        return
+    end
+    local name = Ambiguate(sender, "short")
+    if not name or name == "" then
+        name = sender:match("^[^%-]+") or sender
+    end
+    if name == UnitName("player") then
+        return
+    end
+    scheduleGreeting(name)
 end
 
-function addon:MarkGreeted(name)
-    local key = name and name:lower()
-    if key then
-        self.db.profile.greeted[key] = true
-    end
+-- Slash command handling.
+local function printHelp()
+    addon:Print(L["Commands:"])
+    addon:Print("  /greeter            " .. L["Open options."])
+    addon:Print("  /greeter test       " .. L["Send a test greeting."])
+    addon:Print("  /greeter reset      " .. L["Clear today's greeted list."])
+    addon:Print("  /greeter toggle     " .. L["Turn greetings on or off."])
+    addon:Print("  /greeter help       " .. L["Show this help."])
 end
 
-function addon:BuildGreeting(name)
-    local template = self.db.profile.message or DEFAULT_MESSAGE
-    if template == "" then
-        return nil
-    end
-
-    local ok, text = pcall(string.format, template, name)
-    if not ok then
-        -- A malformed format string should still be usable as plain text.
-        text = template
-    end
-
-    return text
-end
-
-function addon:SendGreeting(name)
-    local text = self:BuildGreeting(name)
-    if not text or text == "" then
-        return false
-    end
-
-    if self.db.profile.delivery == "WHISPER" then
-        SendChatMessage(text, "WHISPER", nil, name)
+function addon:SendTestGreeting()
+    local name = UnitName("player") or L["Friend"]
+    local msg = formatMessage(name)
+    if db.profile.delivery == "WHISPER" then
+        SendChatMessage(msg, "WHISPER", nil, name)
     else
-        SendChatMessage(text, "GUILD")
+        SendChatMessage(msg, "GUILD")
     end
-
-    return true
+    addon:Print(string.format(L["Test greeting sent to %s."], db.profile.delivery == "WHISPER" and name or L["guild chat"]))
 end
 
-function addon:OnGuildChat(_, _, author)
-    if not self.db.profile.enabled then
-        return
-    end
-
-    local name = ShortName(author)
-    if not name or name == UnitName("player") then
-        return
-    end
-
-    self:EnsureToday()
-    if self:IsGreeted(name) then
-        return
-    end
-
-    -- Mark first so a rapid follow-up message cannot queue a second greeting.
-    self:MarkGreeted(name)
-    self:SendGreeting(name)
-
-    if self.db.profile.debug then
-        self:Print(string.format(L["Greeted %s."], name))
-    end
+function addon:ResetToday()
+    wipe(db.profile.greeted)
+    wipe(pending)
+    addon:Print(L["Today's greeted list cleared."])
 end
 
-function addon:PrintHelp()
-    self:Print(L["Commands:"])
-    self:Print("  /greeter - " .. L["Open options."])
-    self:Print("  /greeter test - " .. L["Send a test greeting."])
-    self:Print("  /greeter reset - " .. L["Clear today's greeted list."])
-    self:Print("  /greeter toggle - " .. L["Turn greetings on or off."])
-    self:Print("  /greeter help - " .. L["Show this help."])
-end
-
-function addon:HandleSlashCommand(input)
-    local command = strtrim(input or ""):lower()
-
-    if command == "test" then
-        local name = UnitName("player") or L["Friend"]
-        self:SendGreeting(name)
-        self:Print(string.format(L["Test greeting sent to %s."], self.db.profile.delivery == "WHISPER" and name or L["guild chat"]))
-    elseif command == "reset" then
-        self.db.profile.greeted = {}
-        self.db.profile.greetedDate = TodayKey()
-        self:Print(L["Today's greeted list cleared."])
-    elseif command == "toggle" then
-        self.db.profile.enabled = not self.db.profile.enabled
-        self:Print(self.db.profile.enabled and L["Greetings enabled."] or L["Greetings disabled."])
-    elseif command == "help" then
-        self:PrintHelp()
-    elseif self.OpenOptionsDialog then
-        self.OpenOptionsDialog()
+function addon:ToggleEnabled()
+    db.profile.enabled = not db.profile.enabled
+    if db.profile.enabled then
+        addon:Print(L["Greetings enabled."])
     else
-        self:PrintHelp()
+        addon:Print(L["Greetings disabled."])
     end
 end
+
+local function handleSlash(input)
+    input = (input or ""):trim():lower()
+    if input == "" then
+        addonTable.OpenOptionsDialog()
+    elseif input == "test" then
+        addon:SendTestGreeting()
+    elseif input == "reset" then
+        addon:ResetToday()
+    elseif input == "toggle" then
+        addon:ToggleEnabled()
+    elseif input == "help" then
+        printHelp()
+    else
+        addon:Print("Unknown command. Type /greeter help.")
+    end
+end
+
+addon:RegisterChatCommand("greeter", handleSlash)
+addon:RegisterChatCommand("bgreet", handleSlash)

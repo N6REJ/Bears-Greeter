@@ -5,7 +5,7 @@
 - Keep the folder name, TOC filename, addon name, and SavedVariables prefix (`BearsGreeterDB`) consistent.
 - Register runtime files in `Bears_Greeter.toc` before `options.lua`.
 - Add user-facing strings to `Locales/enUS.lua` first; other locales fall back to English.
-- Never greet the player or send more than one greeting per member per day.
-- Mark a member as greeted before sending so repeated chat lines cannot duplicate a greeting.
-- Do not send chat messages on load, on a timer, or in response to anything except an eligible guild chat message or an explicit test command.
+- Never greet the player or send more than one greeting per member per cache window.
+- Mark a member as greeted before sending so repeated triggers cannot duplicate a greeting.
+- Greetings may be sent in response to an eligible guild chat message, a member coming online (login trigger mode, after the configured delay), or an explicit test command. Never send on load or for any other event.
 - Update `README.md` and `CHANGELOG.md` when behavior changes.

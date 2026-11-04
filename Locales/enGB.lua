@@ -3,14 +3,14 @@ local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enGB")
 if not L then return end
 
 L["Bears Greeter"] = "Bears Greeter"
-L["Greets each guild member the first time they speak in guild chat each day."] = "Greets each guild member the first time they speak in guild chat each day."
-L["Welcome back, %s!"] = "Welcome back, %s!"
+L["Greets each guild member the first time they are seen each day."] = "Greets each guild member the first time they are seen each day."
+L["Welcome back, <name>!"] = "Welcome back, <name>!"
 L["Loaded. Type /greeter to open options."] = "Loaded. Type /greeter to open options."
 L["Greeted %s."] = "Greeted %s."
 L["Enable greetings"] = "Enable greetings"
 L["Turn automatic greetings on or off."] = "Turn automatic greetings on or off."
 L["Greeting message"] = "Greeting message"
-L["Use %s where the player's name should appear."] = "Use %s where the player's name should appear."
+L["Use <name> where the player's name should appear."] = "Use <name> where the player's name should appear."
 L["Delivery"] = "Delivery"
 L["Choose where the greeting is sent."] = "Choose where the greeting is sent."
 L["Guild chat"] = "Guild chat"
