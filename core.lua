@@ -29,6 +29,8 @@ local pending = {}
 local GREETER_ICON = "Interface\\Icons\\ability_priest_heavanlyvoice"
 
 local function RequestGuildRoster()
+    -- C_GuildInfo.GuildRoster() exists in both retail (12.1.5) and Forever (1.60.1).
+    -- The global GuildRoster() was moved to this namespace in 8.2.0; keep it as a fallback.
     if C_GuildInfo and type(C_GuildInfo.GuildRoster) == "function" then
         C_GuildInfo.GuildRoster()
     elseif type(GuildRoster) == "function" then
