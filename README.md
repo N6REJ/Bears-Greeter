@@ -4,7 +4,7 @@
 
 Greets each guild member the first time they are seen each day.
 
-Bears Greeter is a small World of Warcraft retail addon. It listens for guild
+Bears Greeter is a small World of Warcraft addon for retail and Forever. It listens for guild
 chat, remembers who has already been greeted today, and sends one greeting per
 member per day. The list resets when the calendar day changes.
 
