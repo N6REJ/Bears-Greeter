@@ -2,16 +2,15 @@
 
 [![WoW Version](https://img.shields.io/badge/WoW-12.1.5-darkgreen)](https://worldofwarcraft.blizzard.com/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![GitHub](https://img.shields.io/badge/GitHub-Source-blue?logo=github)](https://github.com/N6REJ/Bears-Greeter)
 
-Greets each guild member the first time they are seen each day.
+Greets each guild member the first time they are seen in the cache window.
 
 Bears Greeter is a small World of Warcraft addon for retail and Forever. It listens for guild
 chat, remembers who has already been greeted for the configured cache time, and
 sends one greeting per member per cache window. The list resets when the cache
 expires (by default, when the calendar day changes).
 
-This repository is a working skeleton: the core loop, options panel, slash
-commands, localization hooks, and release automation are in place, ready for
-additional greeting rules.
+The core loop, options panel, slash commands, localization, and release
+automation are in place.
 
 ## Status
 
