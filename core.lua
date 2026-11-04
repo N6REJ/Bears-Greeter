@@ -390,5 +390,4 @@ local function handleSlash(input)
 end
 
 addon:RegisterChatCommand("greeter", handleSlash)
-addon:RegisterChatCommand("bgreet", handleSlash)
 addon:RegisterChatCommand("bg", handleSlash)

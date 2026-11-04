@@ -76,7 +76,7 @@ character on the same realm is only greeted once per day.
 | `/greeter toggle` | Turn greetings on or off. |
 | `/greeter help` | Print command help. |
 
-`/bgreet` is an alias for `/greeter`.
+`/bg` is an alias for `/greeter`.
 
 ## Options
 
