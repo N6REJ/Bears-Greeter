@@ -28,6 +28,14 @@ local pending = {}
 
 local GREETER_ICON = "Interface\\Icons\\ability_priest_heavanlyvoice"
 
+local function RequestGuildRoster()
+    if C_GuildInfo and type(C_GuildInfo.GuildRoster) == "function" then
+        C_GuildInfo.GuildRoster()
+    elseif type(GuildRoster) == "function" then
+        GuildRoster()
+    end
+end
+
 local function todayKey()
     return date("%Y-%m-%d")
 end
@@ -252,7 +260,7 @@ function addon:OnEnable()
     self:RegisterEvent("CHAT_MSG_GUILD")
     -- Request an initial roster so login detection has a baseline.
     if IsInGuild() then
-        GuildRoster()
+        RequestGuildRoster()
     end
     self:CreateMinimapButton()
     self:Print(L["Loaded. Type /greeter to open options."])
@@ -264,7 +272,7 @@ end
 
 function addon:PLAYER_ENTERING_WORLD()
     if IsInGuild() then
-        GuildRoster()
+        RequestGuildRoster()
     end
     -- Reset per-session online tracking so a reload does not re-greet everyone.
     wipe(knownOnline)
