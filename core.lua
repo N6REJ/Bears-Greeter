@@ -17,7 +17,7 @@ local defaults = {
         delivery = "GUILD",
         debug = false,
         greeted = {},
-        minimap = { hide = false, minimapButtonAngle = 225 },
+        minimap = { hide = false, minimapPos = 225 },
     },
 }
 
@@ -135,91 +135,48 @@ local function scheduleGreeting(name)
     end
 end
 
-function addon:UpdateMinimapButtonPosition(button)
-    button = button or self.minimapButton
-    if not button or not _G.Minimap then
-        return
-    end
-    local radius = _G.Minimap:GetWidth() / 2 + 4
-    local angle = math.rad(db.profile.minimap.minimapButtonAngle or 225)
-    button:ClearAllPoints()
-    button:SetPoint("CENTER", _G.Minimap, "CENTER", math.cos(angle) * radius, math.sin(angle) * radius)
-end
+local LDB = LibStub and LibStub("LibDataBroker-1.1", true)
+local DBIcon = LibStub and LibStub("LibDBIcon-1.0", true)
 
 function addon:CreateMinimapButton()
-    if self.minimapButton or not _G.Minimap then
+    if not (LDB and DBIcon) then
         return
     end
-
-    local button = CreateFrame("Button", "BearsGreeterMinimapButton", _G.Minimap)
-    button:SetSize(32, 32)
-    button:SetFrameStrata("MEDIUM")
-    button:SetFrameLevel(_G.Minimap:GetFrameLevel() + 5)
-    button:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
-    button:SetMovable(true)
-    button:SetClampedToScreen(true)
-    button:RegisterForDrag("LeftButton")
-
-    self:UpdateMinimapButtonPosition(button)
-
-    local function UpdateAngleFromCursor()
-        local scale = _G.Minimap:GetEffectiveScale()
-        local mapX, mapY = _G.Minimap:GetCenter()
-        local cursorX, cursorY = GetCursorPosition()
-        cursorX, cursorY = cursorX / scale, cursorY / scale
-        local angle = math.deg(math.atan2(cursorY - mapY, cursorX - mapX))
-        db.profile.minimap.minimapButtonAngle = angle
-        self:UpdateMinimapButtonPosition(button)
+    if self.minimapDataObject then
+        return
     end
-
-    button:SetScript("OnDragStart", function(buttonFrame)
-        buttonFrame:SetScript("OnUpdate", UpdateAngleFromCursor)
-        UpdateAngleFromCursor()
-    end)
-    button:SetScript("OnDragStop", function(buttonFrame)
-        buttonFrame:SetScript("OnUpdate", nil)
-        UpdateAngleFromCursor()
-    end)
-
-    local overlay = button:CreateTexture(nil, "OVERLAY")
-    overlay:SetSize(50, 50)
-    overlay:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
-    overlay:SetVertexColor(1, 0.82, 0.2)
-    overlay:SetPoint("TOPLEFT", button, "TOPLEFT")
-
-    local background = button:CreateTexture(nil, "BACKGROUND")
-    background:SetSize(24, 24)
-    background:SetTexture("Interface\\Minimap\\UI-Minimap-Background")
-    background:SetPoint("CENTER", button, "CENTER")
-
-    local icon = button:CreateTexture(nil, "ARTWORK")
-    icon:SetTexture(GREETER_ICON)
-    icon:SetSize(22, 22)
-    icon:SetPoint("CENTER", button, "CENTER")
-    button.icon = icon
-
-    button:SetScript("OnEnter", function(buttonFrame)
-        GameTooltip:SetOwner(buttonFrame, "ANCHOR_LEFT")
-        GameTooltip:SetText(addonName)
-        GameTooltip:AddLine(L["Open options."], 0.8, 0.8, 0.8)
-        GameTooltip:Show()
-    end)
-    button:SetScript("OnLeave", GameTooltip_Hide)
-    button:SetScript("OnClick", function(_, mouseButton)
-        if mouseButton == "LeftButton" then
-            addonTable.OpenOptionsDialog()
-        elseif mouseButton == "RightButton" then
-            addon:ToggleEnabled()
-        end
-    end)
-
-    button:SetShown(not db.profile.minimap.hide)
-    self.minimapButton = button
+    self.minimapDataObject = LDB:NewDataObject(addonName, {
+        type = "launcher",
+        text = addonName,
+        icon = GREETER_ICON,
+        OnClick = function(_, button)
+            if button == "LeftButton" then
+                addonTable.OpenOptionsDialog()
+            elseif button == "RightButton" then
+                addon:ToggleEnabled()
+            end
+        end,
+        OnTooltipShow = function(tooltip)
+            tooltip:AddLine(addonName)
+            tooltip:AddLine(L["Open options."], 0.8, 0.8, 0.8)
+        end,
+    })
+    DBIcon:Register(addonName, self.minimapDataObject, db.profile.minimap)
+    if db.profile.minimap and db.profile.minimap.hide then
+        DBIcon:Hide(addonName)
+    else
+        DBIcon:Show(addonName)
+    end
 end
 
 function addon:UpdateMinimapButton()
-    if self.minimapButton then
-        self.minimapButton:SetShown(not db.profile.minimap.hide)
+    if not DBIcon then
+        return
+    end
+    if db.profile.minimap.hide then
+        DBIcon:Hide(addonName)
+    else
+        DBIcon:Show(addonName)
     end
 end
 
