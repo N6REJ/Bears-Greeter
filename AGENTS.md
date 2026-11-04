@@ -1,6 +1,6 @@
 # Project guidance
 
-- Bears_Greeter targets retail World of Warcraft only (Midnight 12.1.5+). Do not add Classic support.
+- Bears_Greeter targets retail World of Warcraft (Midnight 12.1.5+) and also supports World of Warcraft: Forever (1.60.1, interface 16001) as an optional, additional client. Neither client is required to be installed. Do not add other Classic variants.
 - Keep the addon Lua 5.1 compatible. Ace libraries are declared as packager externals in `.pkgmeta`; local copies under `Libs/` are ignored by git.
 - Keep the folder name, TOC filename, addon name, and SavedVariables prefix (`BearsGreeterDB`) consistent.
 - Register runtime files in `Bears_Greeter.toc` before `options.lua`.

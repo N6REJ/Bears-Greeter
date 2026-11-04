@@ -1,4 +1,4 @@
-## Interface: 120105
+## Interface: 120105, 16001
 ## Version: @project-version@
 ## Title: Bears Greeter
 ## Notes: Greets guild members the first time they speak in guild chat each day.

@@ -26,8 +26,9 @@ Working baseline. The default behavior is:
 
 ## Requirements
 
-- Retail World of Warcraft: Midnight, patch **12.1.5** or newer. Classic is not
-  supported.
+- Retail World of Warcraft: Midnight, patch **12.1.5** or newer (primary target).
+- Also supports World of Warcraft: Forever (1.60.1, interface 16001) as an
+  optional, additional client. Neither client is required to be installed.
 - Guild membership.
 
 The TOC uses interface number `120105` (12.1.5). If your client reports a
