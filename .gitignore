@@ -1,0 +1,21 @@
+# Packaging output
+dist/
+*.zip
+
+# Editors
+.vscode/
+.idea/
+.vs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Local game AddOns junction
+/AddOns/
+
+# Ace3 external libraries (fetched by the packager at release time)
+/Libs/

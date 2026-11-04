@@ -1,0 +1,36 @@
+## Interface: 120105
+## Version: @project-version@
+## Title: Bears Greeter
+## Notes: Greets guild members the first time they speak in guild chat each day.
+## Author: Bear (N6REJ)
+## IconTexture: Interface\Icons\INV_Misc_Note_01
+## SavedVariables: BearsGreeterDB
+## X-License: MIT License
+## X-Curse-Project-ID: 1783140
+## DefaultState: enabled
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+Libs\AceAddon-3.0\AceAddon-3.0.xml
+Libs\AceEvent-3.0\AceEvent-3.0.xml
+Libs\AceConsole-3.0\AceConsole-3.0.xml
+Libs\AceDB-3.0\AceDB-3.0.xml
+Libs\AceGUI-3.0\AceGUI-3.0.xml
+Libs\AceConfig-3.0\AceConfig-3.0.xml
+Libs\AceLocale-3.0\AceLocale-3.0.xml
+
+Locales\enUS.lua
+Locales\enGB.lua
+Locales\deDE.lua
+Locales\frFR.lua
+Locales\esES.lua
+Locales\esMX.lua
+Locales\ptBR.lua
+Locales\ruRU.lua
+Locales\koKR.lua
+Locales\zhCN.lua
+Locales\zhTW.lua
+Locales\itIT.lua
+
+core.lua
+options.lua
