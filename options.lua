@@ -70,9 +70,18 @@ function addonTable.RegisterOptions(addon)
                 get = function() return db().cacheHours end,
                 set = function(_, value) db().cacheHours = value end,
             },
+            timeOfDay = {
+                type = "toggle",
+                order = 5,
+                width = "full",
+                name = L["Time of day greeting"],
+                desc = L["Use a Good Morning/Afternoon/Evening greeting based on server time."],
+                get = function() return db().timeOfDay end,
+                set = function(_, value) db().timeOfDay = value end,
+            },
             message = {
                 type = "input",
-                order = 5,
+                order = 6,
                 width = "full",
                 name = L["Greeting message"],
                 desc = L["Use <name> where the player's name should appear."],
@@ -85,7 +94,7 @@ function addonTable.RegisterOptions(addon)
             },
             delivery = {
                 type = "select",
-                order = 6,
+                order = 7,
                 width = "full",
                 name = L["Delivery"],
                 desc = L["Choose where the greeting is sent."],
@@ -95,7 +104,7 @@ function addonTable.RegisterOptions(addon)
             },
             debug = {
                 type = "toggle",
-                order = 7,
+                order = 8,
                 width = "full",
                 name = L["Debug messages"],
                 desc = L["Print a local message after each greeting."],
@@ -104,7 +113,7 @@ function addonTable.RegisterOptions(addon)
             },
             minimap = {
                 type = "toggle",
-                order = 8,
+                order = 9,
                 width = "full",
                 name = L["Show minimap button"],
                 desc = L["Show or hide the minimap button."],

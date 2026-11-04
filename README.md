@@ -86,6 +86,7 @@ character on the same realm is only greeted once per day.
 | Trigger | Greet on login (on join) or on first guild chat message. |
 | Delay (seconds) | Seconds to wait after a member is seen before sending. |
 | Cache time (hours) | How long a member is remembered. 24 means until the calendar day changes. |
+| Time of day greeting | Use a Good Morning/Afternoon/Evening greeting based on server time. |
 | Greeting message | Template sent to chat. `<name>` is replaced with the member's name. |
 | Delivery | Send to guild chat or whisper the member. |
 | Debug messages | Print a local message after each greeting. |

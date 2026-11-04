@@ -17,6 +17,7 @@ local defaults = {
         delivery = "GUILD",
         debug = false,
         greeted = {},
+        timeOfDay = false,
         minimap = { hide = false, minimapButtonAngle = 225 },
     },
 }
@@ -83,7 +84,22 @@ local function clearExpired()
     end
 end
 
+local function timeOfDayGreeting()
+    local now = (GetServerTime and GetServerTime()) or time()
+    local hour = tonumber(date("%H", now)) or 0
+    if hour >= 5 and hour < 12 then
+        return L["Good Morning"]
+    elseif hour >= 12 and hour < 18 then
+        return L["Good Afternoon"]
+    else
+        return L["Good Evening"]
+    end
+end
+
 local function formatMessage(name)
+    if db.profile.timeOfDay then
+        return timeOfDayGreeting() .. ", " .. name .. "!"
+    end
     local template = db.profile.message
     if not template or template == "" then
         template = "Welcome back, <name>!"

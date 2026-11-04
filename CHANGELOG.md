@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Add time of day greeting option (Good Morning/Afternoon/Evening based on server time).
 - Add login trigger mode (greet members when they come online) with a configurable delay.
 - Keep guild chat trigger mode as an option.
 - Add Cache time setting (hours; 24 means until the calendar day changes).
