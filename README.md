@@ -52,9 +52,17 @@ New-Item -ItemType Junction `
 
 Then run `/reload` in game.
 
+For World of Warcraft: Forever, use the same junction under the `_forever_` folder:
+
+```powershell
+New-Item -ItemType Junction `
+    -Path "C:\Gaming\World of Warcraft\_forever_\Interface\AddOns\Bears_Greeter" `
+    -Target "E:\wow\Bears-Greeter"
+```
+
 ## Usage
 
-Guild chat is monitored automatically. Open the options with `/greeter`, `/bgreet`,
+Guild chat is monitored automatically. Open the options with `/greeter`, `/bg`,
 or the addon entry in **Options > AddOns > Bears Greeter**.
 
 The first time a guild member speaks each day:
@@ -70,7 +78,7 @@ character on the same realm is only greeted once per day.
 
 | Command | Description |
 | --- | --- |
-| `/greeter` | Open the options panel. |
+| `/greeter` (or `/bg`) | Open the options panel. |
 | `/greeter test` | Send a test greeting. |
 | `/greeter reset` | Clear today's greeted list. |
 | `/greeter toggle` | Turn greetings on or off. |
@@ -84,8 +92,8 @@ character on the same realm is only greeted once per day.
 | --- | --- |
 | Enable greetings | Turn automatic greetings on or off. |
 | Trigger | Greet on login (on join) or on first guild chat message. |
-| Delay (seconds) | Seconds to wait after a member is seen before sending. |
-| Cache time (hours) | How long a member is remembered. 24 means until the calendar day changes. |
+| Delay (seconds) | Seconds to wait after a member is seen before sending. Default 15. |
+| Cache time (hours) | How long a member is remembered. Default 24 (until the calendar day changes). |
 | Time of day greeting | Use a Good Morning/Afternoon/Evening greeting based on server time. |
 | Greeting message | Template sent to chat. `<name>` is replaced with the member's name. |
 | Delivery | Send to guild chat or whisper the member. |
