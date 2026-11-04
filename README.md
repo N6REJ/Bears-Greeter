@@ -5,8 +5,9 @@
 Greets each guild member the first time they are seen each day.
 
 Bears Greeter is a small World of Warcraft addon for retail and Forever. It listens for guild
-chat, remembers who has already been greeted today, and sends one greeting per
-member per day. The list resets when the calendar day changes.
+chat, remembers who has already been greeted for the configured cache time, and
+sends one greeting per member per cache window. The list resets when the cache
+expires (by default, when the calendar day changes).
 
 This repository is a working skeleton: the core loop, options panel, slash
 commands, localization hooks, and release automation are in place, ready for
@@ -65,14 +66,14 @@ New-Item -ItemType Junction `
 Guild chat is monitored automatically. Open the options with `/greeter`, `/bg`,
 or the addon entry in **Options > AddOns > Bears Greeter**.
 
-The first time a guild member speaks each day:
+The first time a guild member is seen in the cache window:
 
 ```text
 [Guild] Bearesquishy: Welcome back, Thrall!
 ```
 
 The player is never greeted. Members are tracked by short name, so the same
-character on the same realm is only greeted once per day.
+character on the same realm is only greeted once per cache window.
 
 ## Slash commands
 
