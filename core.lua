@@ -237,7 +237,9 @@ function addon:CreateMinimapButton()
     button:SetScript("OnLeave", GameTooltip_Hide)
     button:SetScript("OnClick", function(_, mouseButton)
         if mouseButton == "LeftButton" then
-            addonTable.OpenOptionsDialog()
+            if addon.OpenOptionsDialog then
+                addon.OpenOptionsDialog()
+            end
         elseif mouseButton == "RightButton" then
             addon:ToggleEnabled()
         end
