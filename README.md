@@ -9,12 +9,9 @@ chat, remembers who has already been greeted for the configured cache time, and
 sends one greeting per member per cache window. The list resets when the cache
 expires (by default, when the calendar day changes).
 
-The core loop, options panel, slash commands, localization, and release
-automation are in place.
-
 ## Status
 
-Working baseline. The default behavior is:
+The default behavior is:
 
 - A guild member comes online (or speaks in guild chat, depending on the
   trigger setting).
@@ -135,8 +132,8 @@ AGENTS.md                  Project guidance for contributors and agents
 - The addon name, TOC filename, folder name, and SavedVariables prefix
   (`BearsGreeterDB`) must stay consistent.
 - Add any new runtime file to `Bears_Greeter.toc` before `options.lua`.
-- Add user-facing strings to `Locales/enUS.lua` first. Other locales fall back
-  to English until translated.
+- Add user-facing strings to `Locales/enUS.lua` first. Other locale files ship
+  English templates that can be replaced with real translations.
 - Keep the code Lua 5.1 compatible.
 
 ## Release automation
