@@ -1,5 +1,5 @@
 ## Interface: 120105, 16001
-## Version: @project-version@
+## Version: 2026.11.04
 ## Title: Bears Greeter
 ## Notes: Greets guild members the first time they speak in guild chat each day.
 ## Author: Bear (N6REJ)
