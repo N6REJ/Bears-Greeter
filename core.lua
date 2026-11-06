@@ -13,7 +13,7 @@ local defaults = {
         trigger = "login", -- "login" or "guildchat"
         delay = 15,
         cacheHours = 24,
-        message = "Welcome back, <name>!",
+        message = "Welcome back <name>!",
         delivery = "GUILD",
         debug = false,
         greeted = {},
@@ -25,7 +25,11 @@ local defaults = {
 -- Per-session state.
 local knownOnline = {}
 local initialRosterLoaded = false
+local rosterSettleUntil = 0
 local pending = {}
+
+-- Members seen while the roster is still loading after login are recorded but not greeted.
+local ROSTER_SETTLE_SECONDS = 30
 
 local GREETER_ICON = "Interface\\Icons\\ability_priest_heavanlyvoice"
 
@@ -102,7 +106,7 @@ local function formatMessage(name)
     end
     local template = db.profile.message
     if not template or template == "" then
-        template = "Welcome back, <name>!"
+        template = "Welcome back <name>!"
     end
     local msg = template:gsub("<[Nn]ame>", name)
     msg = msg:gsub("%%s", name)
@@ -314,18 +318,25 @@ function addon:GUILD_ROSTER_UPDATE()
     if not IsInGuild() then
         return
     end
+    if (GetNumGuildMembers() or 0) == 0 then
+        return
+    end
     local current = getOnlineGuildMembers()
     if not initialRosterLoaded then
         for name in pairs(current) do
             knownOnline[name] = true
         end
         initialRosterLoaded = true
+        rosterSettleUntil = GetTime() + ROSTER_SETTLE_SECONDS
         return
     end
+    local settling = GetTime() < rosterSettleUntil
     for name in pairs(current) do
         if not knownOnline[name] then
             knownOnline[name] = true
-            scheduleGreeting(name)
+            if not settling then
+                scheduleGreeting(name)
+            end
         end
     end
     for name in pairs(knownOnline) do

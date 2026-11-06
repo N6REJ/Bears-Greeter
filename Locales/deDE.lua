@@ -4,7 +4,7 @@ if not L then return end
 
 L["Bears Greeter"] = "Bears Greeter"
 L["Greets each guild member the first time they are seen each day."] = "Begrüßt jedes Gildenmitglied beim ersten Sehen pro Tag."
-L["Welcome back, <name>!"] = "Willkommen zurück, <name>!"
+L["Welcome back <name>!"] = "Willkommen zurück <name>!"
 L["Loaded. Type /greeter to open options."] = "Geladen. /greeter eingeben, um Optionen zu öffnen."
 L["Greeted %s."] = "%s wurde begrüßt."
 L["Enable greetings"] = "Begrüßungen aktivieren"

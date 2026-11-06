@@ -65,7 +65,7 @@ or the addon entry in **Options > AddOns > Bears Greeter**.
 The first time a guild member is seen in the cache window:
 
 ```text
-[Guild] Bearesquishy: Welcome back, Thrall!
+[Guild] Bearesquishy: Welcome back Thrall!
 ```
 
 The player is never greeted. Members are tracked by short name, so the same
@@ -103,7 +103,10 @@ Defaults are saved per Blizzard account in `BearsGreeterDB`.
 ## How it works
 
 In login trigger mode the addon watches `GUILD_ROSTER_UPDATE` for members coming
-online; in guild chat mode it listens to `CHAT_MSG_GUILD`. Either way the member
+online; in guild chat mode it listens to `CHAT_MSG_GUILD`. The first roster
+snapshot after login is only a baseline, and members seen during the following
+30 seconds are recorded without greeting, so logging in never greets everyone
+who is already online. Either way the member
 is normalized with `Ambiguate`, checked against the cache, marked as greeted
 before sending, and greeted after the configured delay. Greetings go out through
 `SendChatMessage` to guild chat or as a whisper.

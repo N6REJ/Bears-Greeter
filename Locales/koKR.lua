@@ -4,7 +4,7 @@ if not L then return end
 
 L["Bears Greeter"] = "Bears Greeter"
 L["Greets each guild member the first time they are seen each day."] = "매일 처음 보는 길드원을 인사합니다."
-L["Welcome back, <name>!"] = "다시 오신 것을 환영합니다, <name>님!"
+L["Welcome back <name>!"] = "다시 오신 것을 환영합니다 <name>님!"
 L["Loaded. Type /greeter to open options."] = "로드됨. /greeter 를 입력하여 옵션을 엽니다."
 L["Greeted %s."] = "%s 님에게 인사했습니다."
 L["Enable greetings"] = "인사 활성화"

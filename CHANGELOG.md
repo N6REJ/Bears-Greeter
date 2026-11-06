@@ -1,5 +1,11 @@
 # Bears Greeter
 
+## Unreleased
+
+- chore: default greeting is now "Welcome back <name>!" (comma removed)
+- fix: login trigger no longer greets every online guild member on login
+    The first roster update with members loaded is the baseline, and members seen during a 30 second settle window after it are recorded without greeting. Empty roster updates are ignored.
+
 ## [2026.11.04](https://github.com/N6REJ/Bears-Greeter/tree/2026.11.04) (2026-11-04)
 [Full Changelog](https://github.com/N6REJ/Bears-Greeter/commits/2026.11.04) [Previous Releases](https://github.com/N6REJ/Bears-Greeter/releases)
 

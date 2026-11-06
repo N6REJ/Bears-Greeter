@@ -3,7 +3,7 @@ local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true, true)
 
 L["Bears Greeter"] = true
 L["Greets each guild member the first time they are seen each day."] = true
-L["Welcome back, <name>!"] = true
+L["Welcome back <name>!"] = true
 L["Loaded. Type /greeter to open options."] = true
 L["Greeted %s."] = true
 L["Enable greetings"] = true
