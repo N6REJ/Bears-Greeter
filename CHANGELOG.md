@@ -4,6 +4,7 @@
 
 - chore: default greeting is now "Welcome back <name>!" (comma removed)
 - fix: login trigger no longer greets every online guild member on login
+- fix: time-of-day boundaries are now Morning 00:00-12:00, Afternoon 12:00-18:00, Evening 18:00-24:00
     The first roster update with members loaded is the baseline, and members seen during a 30 second settle window after it are recorded without greeting. Empty roster updates are ignored.
 
 ## [2026.11.04](https://github.com/N6REJ/Bears-Greeter/tree/2026.11.04) (2026-11-04)

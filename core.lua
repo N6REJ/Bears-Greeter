@@ -91,9 +91,9 @@ end
 local function timeOfDayGreeting()
     local now = (GetServerTime and GetServerTime()) or time()
     local hour = tonumber(date("%H", now)) or 0
-    if hour >= 5 and hour < 12 then
+    if hour < 12 then
         return L["Good Morning"]
-    elseif hour >= 12 and hour < 18 then
+    elseif hour < 18 then
         return L["Good Afternoon"]
     else
         return L["Good Evening"]
