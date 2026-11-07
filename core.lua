@@ -18,6 +18,7 @@ local defaults = {
         debug = false,
         greeted = {},
         timeOfDay = false,
+        firstNameOnly = false,
         minimap = { hide = false, minimapButtonAngle = 225 },
     },
 }
@@ -101,6 +102,9 @@ local function timeOfDayGreeting()
 end
 
 local function formatMessage(name)
+    if db.profile.firstNameOnly then
+        name = name:match("^%S+") or name
+    end
     if db.profile.timeOfDay then
         return timeOfDayGreeting() .. ", " .. name .. "!"
     end

@@ -20,16 +20,25 @@ function addonTable.RegisterOptions(addon)
         type = "group",
         name = L["Bears Greeter"],
         args = {
+            firstNameOnly = {
+                type = "toggle",
+                order = 0,
+                width = "full",
+                name = L["First name only"],
+                desc = L["Greet with only the first name, for example Newmo instead of Newmo Odell."],
+                get = function() return db().firstNameOnly end,
+                set = function(_, value) db().firstNameOnly = value end,
+            },
             about = {
                 type = "description",
-                order = 0,
+                order = 1,
                 width = "full",
                 fontSize = "medium",
                 name = L["Greets each guild member the first time they are seen each day."],
             },
             enabled = {
                 type = "toggle",
-                order = 1,
+                order = 2,
                 width = "full",
                 name = L["Enable greetings"],
                 desc = L["Turn automatic greetings on or off."],
@@ -38,7 +47,7 @@ function addonTable.RegisterOptions(addon)
             },
             trigger = {
                 type = "select",
-                order = 2,
+                order = 3,
                 width = "full",
                 name = L["Trigger"],
                 desc = L["When to greet a member: when they log in, or on their first guild chat message."],
@@ -48,7 +57,7 @@ function addonTable.RegisterOptions(addon)
             },
             delay = {
                 type = "range",
-                order = 3,
+                order = 4,
                 width = "full",
                 name = L["Delay (seconds)"],
                 desc = L["Seconds to wait after a member is seen before sending the greeting."],
@@ -60,7 +69,7 @@ function addonTable.RegisterOptions(addon)
             },
             cacheHours = {
                 type = "range",
-                order = 4,
+                order = 5,
                 width = "full",
                 name = L["Cache time (hours)"],
                 desc = L["How long a member is remembered as greeted. 24 means until the calendar day changes."],
@@ -72,7 +81,7 @@ function addonTable.RegisterOptions(addon)
             },
             timeOfDay = {
                 type = "toggle",
-                order = 5,
+                order = 6,
                 width = "full",
                 name = L["Time of day greeting"],
                 desc = L["Use a Good Morning/Afternoon/Evening greeting based on server time."],
@@ -81,7 +90,7 @@ function addonTable.RegisterOptions(addon)
             },
             message = {
                 type = "input",
-                order = 6,
+                order = 7,
                 width = "full",
                 name = L["Greeting message"],
                 desc = L["Use <name> where the player's name should appear."],
@@ -94,7 +103,7 @@ function addonTable.RegisterOptions(addon)
             },
             delivery = {
                 type = "select",
-                order = 7,
+                order = 8,
                 width = "full",
                 name = L["Delivery"],
                 desc = L["Choose where the greeting is sent."],
@@ -104,7 +113,7 @@ function addonTable.RegisterOptions(addon)
             },
             debug = {
                 type = "toggle",
-                order = 8,
+                order = 9,
                 width = "full",
                 name = L["Debug messages"],
                 desc = L["Print a local message after each greeting."],
@@ -113,7 +122,7 @@ function addonTable.RegisterOptions(addon)
             },
             minimap = {
                 type = "toggle",
-                order = 9,
+                order = 10,
                 width = "full",
                 name = L["Show minimap button"],
                 desc = L["Show or hide the minimap button."],
@@ -125,12 +134,12 @@ function addonTable.RegisterOptions(addon)
             },
             actionsHeader = {
                 type = "header",
-                order = 10,
+                order = 11,
                 name = L["Actions"],
             },
             test = {
                 type = "execute",
-                order = 11,
+                order = 12,
                 width = "relative",
                 relWidth = 0.48,
                 name = L["Test"],
@@ -141,14 +150,14 @@ function addonTable.RegisterOptions(addon)
             },
             actionsSpacer = {
                 type = "description",
-                order = 12,
+                order = 13,
                 width = "relative",
                 relWidth = 0.02,
                 name = "",
             },
             resetToday = {
                 type = "execute",
-                order = 13,
+                order = 14,
                 width = "relative",
                 relWidth = 0.48,
                 name = L["Reset today"],

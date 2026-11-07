@@ -87,6 +87,7 @@ character on the same realm is only greeted once per cache window.
 
 | Option | Description |
 | --- | --- |
+| First name only | Greet with only the first word of the name, for example Newmo instead of Newmo Odell. Affects Forever, where names can include a space. Default off. |
 | Enable greetings | Turn automatic greetings on or off. |
 | Trigger | Greet on login (on join) or on first guild chat message. |
 | Delay (seconds) | Seconds to wait after a member is seen before sending. Default 15. |

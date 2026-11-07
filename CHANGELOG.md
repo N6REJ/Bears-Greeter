@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- feat: add "First name only" option at the top of the options panel
+    When on, greetings use only the first word of the member's name (for example Newmo instead of Newmo Odell). Default off.
 - chore: default greeting is now "Welcome back <name>!" (comma removed)
 - fix: login trigger no longer greets every online guild member on login
 - fix: time-of-day boundaries are now Morning 00:00-12:00, Afternoon 12:00-18:00, Evening 18:00-24:00
