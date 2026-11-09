@@ -40,22 +40,22 @@ Charts are generated on the first run. Customize them freely; only the data tabl
 
 | Metric | Value |
 |---|---|
-| Total | 54 |
-| Day | 22 |
-| Week | 49 (partial) |
-| Month | 49 (partial) |
-| Year | 49 (partial) |
+| Total | 56 |
+| Day | 2 |
+| Week | 0 |
+| Month | 51 (partial) |
+| Year | 51 (partial) |
 
 | Field | Value |
 |---|---|
 | Repository | `N6REJ/Bears-Greeter` |
 | CurseForge mod id | `1783140` |
 | Update mode | daily |
-| Period | week `2026-W45`, month `Nov 2026`, year `2026` |
+| Period | week `2026-W46`, month `Nov 2026`, year `2026` |
 | Window | 365 days |
-| Snapshots | 4 |
-| Partial | week, month, year |
-| Generated at | `2026-11-08T04:40:12.651Z` |
+| Snapshots | 5 |
+| Partial | month, year |
+| Generated at | `2026-11-09T04:50:26.588Z` |
 
 Source data: [`stats/downloads.json`](https://raw.githubusercontent.com/N6REJ/Bears-Greeter/main/stats/downloads.json)
 
