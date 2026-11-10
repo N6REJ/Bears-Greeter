@@ -117,6 +117,18 @@ local function formatMessage(name)
     return msg
 end
 
+local function sendChat(msg, target)
+    -- Use C_ChatInfo.SendChatMessage when it exists; it is the non-deprecated
+    -- path and is safe to call from a timer callback. Fall back to the global.
+    local ok = false
+    if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
+        ok = pcall(C_ChatInfo.SendChatMessage, msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
+    else
+        ok = pcall(SendChatMessage, msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
+    end
+    return ok
+end
+
 local function doSend(name)
     if not db.profile.enabled then
         pending[name] = nil
@@ -127,12 +139,12 @@ local function doSend(name)
         return
     end
     local msg = formatMessage(name)
-    if db.profile.delivery == "WHISPER" then
-        SendChatMessage(msg, "WHISPER", nil, name)
-    else
-        SendChatMessage(msg, "GUILD")
-    end
-    if db.profile.debug then
+    local target = (db.profile.delivery == "WHISPER") and name or nil
+    if not sendChat(msg, target) then
+        if db.profile.debug then
+            addon:Print("Bears Greeter: could not send greeting (protected or unavailable).")
+        end
+    elseif db.profile.debug then
         addon:Print(string.format(L["Greeted %s."], name))
     end
     pending[name] = nil
@@ -380,10 +392,10 @@ end
 function addon:SendTestGreeting()
     local name = UnitName("player") or L["Friend"]
     local msg = formatMessage(name)
-    if db.profile.delivery == "WHISPER" then
-        SendChatMessage(msg, "WHISPER", nil, name)
-    else
-        SendChatMessage(msg, "GUILD")
+    local target = (db.profile.delivery == "WHISPER") and name or nil
+    if not sendChat(msg, target) then
+        addon:Print("Bears Greeter: could not send greeting (protected or unavailable).")
+        return
     end
     addon:Print(string.format(L["Test greeting sent to %s."], db.profile.delivery == "WHISPER" and name or L["guild chat"]))
 end
