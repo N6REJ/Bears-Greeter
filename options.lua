@@ -6,6 +6,9 @@ function addonTable.RegisterOptions(addon)
         return addon.db.profile
     end
 
+    local selectedGreetingIndex = nil
+    local newGreetingText = ""
+
     local triggerValues = {
         login = L["Login (on join)"],
         guildchat = L["Guild chat (first message)"],
@@ -29,16 +32,92 @@ function addonTable.RegisterOptions(addon)
                 get = function() return db().firstNameOnly end,
                 set = function(_, value) db().firstNameOnly = value end,
             },
+            randomGreetings = {
+                type = "toggle",
+                order = 1,
+                width = "full",
+                name = L["Random greetings"],
+                desc = L["Pick a random greeting from a built-in list instead of the fixed message."],
+                get = function() return db().randomGreetings end,
+                set = function(_, value) db().randomGreetings = value end,
+            },
+            randomListHeader = {
+                type = "header",
+                order = 2,
+                name = L["Random greeting list"],
+            },
+            randomListDesc = {
+                type = "description",
+                order = 3,
+                width = "full",
+                name = L["Greetings used when Random greetings is on. Use <name> for the member's name."],
+            },
+            randomListSelect = {
+                type = "select",
+                order = 4,
+                width = "full",
+                name = L["Remove selected"],
+                desc = L["Select a greeting to remove."],
+                values = function()
+                    local vals = {}
+                    local list = db().randomGreetingList or {}
+                    for i, tmpl in ipairs(list) do
+                        vals[i] = tmpl
+                    end
+                    return vals
+                end,
+                get = function() return selectedGreetingIndex end,
+                set = function(_, value) selectedGreetingIndex = value end,
+            },
+            randomListRemove = {
+                type = "execute",
+                order = 5,
+                width = "relative",
+                relWidth = 0.48,
+                name = L["Remove selected"],
+                func = function()
+                    if selectedGreetingIndex then
+                        local list = db().randomGreetingList or {}
+                        table.remove(list, selectedGreetingIndex)
+                        db().randomGreetingList = list
+                        selectedGreetingIndex = nil
+                    end
+                end,
+            },
+            randomListAddInput = {
+                type = "input",
+                order = 6,
+                width = "full",
+                name = L["New greeting"],
+                desc = L["Type a greeting and click Add."],
+                get = function() return newGreetingText end,
+                set = function(_, value) newGreetingText = value or "" end,
+            },
+            randomListAdd = {
+                type = "execute",
+                order = 7,
+                width = "relative",
+                relWidth = 0.48,
+                name = L["Add greeting"],
+                func = function()
+                    if newGreetingText and newGreetingText ~= "" then
+                        local list = db().randomGreetingList or {}
+                        list[#list + 1] = newGreetingText
+                        db().randomGreetingList = list
+                        newGreetingText = ""
+                    end
+                end,
+            },
             about = {
                 type = "description",
-                order = 1,
+                order = 16,
                 width = "full",
                 fontSize = "medium",
                 name = L["Greets each guild member the first time they are seen each day."],
             },
             enabled = {
                 type = "toggle",
-                order = 2,
+                order = 3,
                 width = "full",
                 name = L["Enable greetings"],
                 desc = L["Turn automatic greetings on or off."],
@@ -47,7 +126,7 @@ function addonTable.RegisterOptions(addon)
             },
             trigger = {
                 type = "select",
-                order = 3,
+                order = 4,
                 width = "full",
                 name = L["Trigger"],
                 desc = L["When to greet a member: when they log in, or on their first guild chat message."],
@@ -57,7 +136,7 @@ function addonTable.RegisterOptions(addon)
             },
             delay = {
                 type = "range",
-                order = 4,
+                order = 5,
                 width = "full",
                 name = L["Delay (seconds)"],
                 desc = L["Seconds to wait after a member is seen before sending the greeting."],
@@ -69,7 +148,7 @@ function addonTable.RegisterOptions(addon)
             },
             cacheHours = {
                 type = "range",
-                order = 5,
+                order = 6,
                 width = "full",
                 name = L["Cache time (hours)"],
                 desc = L["How long a member is remembered as greeted. 24 means until the calendar day changes."],
@@ -81,7 +160,7 @@ function addonTable.RegisterOptions(addon)
             },
             timeOfDay = {
                 type = "toggle",
-                order = 6,
+                order = 7,
                 width = "full",
                 name = L["Time of day greeting"],
                 desc = L["Use a Good Morning/Afternoon/Evening greeting based on server time."],
@@ -90,7 +169,7 @@ function addonTable.RegisterOptions(addon)
             },
             message = {
                 type = "input",
-                order = 7,
+                order = 8,
                 width = "full",
                 name = L["Greeting message"],
                 desc = L["Use <name> where the player's name should appear."],
@@ -103,7 +182,7 @@ function addonTable.RegisterOptions(addon)
             },
             delivery = {
                 type = "select",
-                order = 8,
+                order = 9,
                 width = "full",
                 name = L["Delivery"],
                 desc = L["Choose where the greeting is sent."],
@@ -113,7 +192,7 @@ function addonTable.RegisterOptions(addon)
             },
             debug = {
                 type = "toggle",
-                order = 9,
+                order = 10,
                 width = "full",
                 name = L["Debug messages"],
                 desc = L["Print a local message after each greeting."],
@@ -122,7 +201,7 @@ function addonTable.RegisterOptions(addon)
             },
             minimap = {
                 type = "toggle",
-                order = 10,
+                order = 11,
                 width = "full",
                 name = L["Show minimap button"],
                 desc = L["Show or hide the minimap button."],
@@ -134,12 +213,12 @@ function addonTable.RegisterOptions(addon)
             },
             actionsHeader = {
                 type = "header",
-                order = 11,
+                order = 12,
                 name = L["Actions"],
             },
             test = {
                 type = "execute",
-                order = 12,
+                order = 13,
                 width = "relative",
                 relWidth = 0.48,
                 name = L["Test"],
@@ -150,14 +229,14 @@ function addonTable.RegisterOptions(addon)
             },
             actionsSpacer = {
                 type = "description",
-                order = 13,
+                order = 14,
                 width = "relative",
                 relWidth = 0.02,
                 name = "",
             },
             resetToday = {
                 type = "execute",
-                order = 14,
+                order = 15,
                 width = "relative",
                 relWidth = 0.48,
                 name = L["Reset today"],

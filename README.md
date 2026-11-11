@@ -88,6 +88,8 @@ character on the same realm is only greeted once per cache window.
 | Option | Description |
 | --- | --- |
 | First name only | Greet with only the first word of the name, for example Newmo instead of Newmo Odell. Affects Forever, where names can include a space. Default off. |
+| Random greetings | Pick a random greeting from a built-in list instead of the fixed message. When combined with Time of day greeting, the time-of-day greeting is one of the random options. Default off. |
+| Random greeting list | The list of greetings used when Random greetings is on. Add or remove entries. Use `<name>` for the member's name. |
 | Enable greetings | Turn automatic greetings on or off. |
 | Trigger | Greet on login (on join) or on first guild chat message. |
 | Delay (seconds) | Seconds to wait after a member is seen before sending. Default 15. |

@@ -19,6 +19,8 @@ local defaults = {
         greeted = {},
         timeOfDay = false,
         firstNameOnly = false,
+        randomGreetings = false,
+        randomGreetingList = nil,
         minimap = { hide = false, minimapButtonAngle = 225 },
     },
 }
@@ -101,9 +103,47 @@ local function timeOfDayGreeting()
     end
 end
 
+local defaultRandomGreetings = {
+    "Hi <name>!",
+    "Welcome back, <name>!",
+    "Hey <name>, glad you're here!",
+    "Good to see you, <name>!",
+    "Hey there <name>, ready to adventure?",
+    "<name> has returned!",
+    "Welcome <name>, pull up a chair!",
+    "Great to see you again, <name>!",
+    "Welcome back <name>, hope you're doing well!",
+    "Hey <name>, the guild is glad you're here!",
+    "Welcome back <name>, let's get to work!",
+    "Hey <name>, nice to see you!",
+    "<name> has arrived!",
+    "Welcome <name>, we've been waiting!",
+    "Hey <name>, thanks for showing up!",
+    "Hey there <name>, glad you could make it!",
+    "Welcome back <name>, hope your day is going well!",
+    "<name>! Great to have you with us!",
+}
+
 local function formatMessage(name)
     if db.profile.firstNameOnly then
         name = name:match("^%S+") or name
+    end
+    if db.profile.randomGreetings then
+        local list = db.profile.randomGreetingList
+        if not list or #list == 0 then
+            list = defaultRandomGreetings
+        end
+        local pool = {}
+        for _, tmpl in ipairs(list) do
+            pool[#pool + 1] = tmpl
+        end
+        if db.profile.timeOfDay then
+            pool[#pool + 1] = timeOfDayGreeting() .. ", <name>!"
+        end
+        local chosen = pool[math.random(#pool)]
+        local msg = chosen:gsub("<[Nn]ame>", name)
+        msg = msg:gsub("%%s", name)
+        return msg
     end
     if db.profile.timeOfDay then
         return timeOfDayGreeting() .. ", " .. name .. "!"
@@ -300,6 +340,12 @@ end
 function addon:OnInitialize()
     db = LibStub("AceDB-3.0"):New("BearsGreeterDB", defaults, true)
     addon.db = db
+    if not db.profile.randomGreetingList or #db.profile.randomGreetingList == 0 then
+        db.profile.randomGreetingList = {}
+        for _, tmpl in ipairs(defaultRandomGreetings) do
+            db.profile.randomGreetingList[#db.profile.randomGreetingList + 1] = tmpl
+        end
+    end
     addonTable.RegisterOptions(addon)
 end
 

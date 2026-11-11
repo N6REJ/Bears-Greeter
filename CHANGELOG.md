@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- feat: add/remove random greetings
+    The random greeting list is now editable. Add new greetings or remove existing ones from the options panel.
+- feat: add "Random greetings" option
+    When on, picks a random greeting from a built-in list. When combined with Time of day greeting, the time-of-day greeting is included as one of the random options.
 - fix: avoid ADDON_ACTION_BLOCKED when sending greetings
     Route sends through C_ChatInfo.SendChatMessage (with a pcall fallback to SendChatMessage) so timer callbacks can't trigger a protected call.
 - feat: add "First name only" option at the top of the options panel
