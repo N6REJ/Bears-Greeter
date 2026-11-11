@@ -138,13 +138,19 @@ local function doSend(name)
         pending[name] = nil
         return
     end
+    -- SendChatMessage is protected while in combat; defer until combat ends.
+    if InCombatLockdown() or UnitAffectingCombat("player") then
+        pending[name] = true
+        return
+    end
     local msg = formatMessage(name)
     local target = (db.profile.delivery == "WHISPER") and name or nil
-    if not sendChat(msg, target) then
-        if db.profile.debug then
-            addon:Print("Bears Greeter: could not send greeting (protected or unavailable).")
-        end
-    elseif db.profile.debug then
+    if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
+        C_ChatInfo.SendChatMessage(msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
+    else
+        SendChatMessage(msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
+    end
+    if db.profile.debug then
         addon:Print(string.format(L["Greeted %s."], name))
     end
     pending[name] = nil
@@ -302,6 +308,7 @@ function addon:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
     self:RegisterEvent("GUILD_ROSTER_UPDATE")
     self:RegisterEvent("CHAT_MSG_GUILD")
+    self:RegisterEvent("PLAYER_REGEN_ENABLED")
     -- Request an initial roster so login detection has a baseline.
     if IsInGuild() then
         RequestGuildRoster()
@@ -362,6 +369,15 @@ function addon:GUILD_ROSTER_UPDATE()
     end
 end
 
+function addon:PLAYER_REGEN_ENABLED()
+    -- Combat ended; send any greetings that were deferred.
+    for name in pairs(pending) do
+        if pending[name] == true then
+            doSend(name)
+        end
+    end
+end
+
 function addon:CHAT_MSG_GUILD(message, sender)
     if db.profile.trigger ~= "guildchat" then
         return
@@ -392,10 +408,15 @@ end
 function addon:SendTestGreeting()
     local name = UnitName("player") or L["Friend"]
     local msg = formatMessage(name)
-    local target = (db.profile.delivery == "WHISPER") and name or nil
-    if not sendChat(msg, target) then
-        addon:Print("Bears Greeter: could not send greeting (protected or unavailable).")
+    if InCombatLockdown() or UnitAffectingCombat("player") then
+        addon:Print("Bears Greeter: cannot send while in combat.")
         return
+    end
+    local target = (db.profile.delivery == "WHISPER") and name or nil
+    if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
+        C_ChatInfo.SendChatMessage(msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
+    else
+        SendChatMessage(msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
     end
     addon:Print(string.format(L["Test greeting sent to %s."], db.profile.delivery == "WHISPER" and name or L["guild chat"]))
 end
