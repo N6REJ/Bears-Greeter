@@ -185,12 +185,13 @@ local function doSend(name)
     end
     local msg = formatMessage(name)
     local target = (db.profile.delivery == "WHISPER") and name or nil
+    local ok
     if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
-        C_ChatInfo.SendChatMessage(msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
+        ok = pcall(C_ChatInfo.SendChatMessage, msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
     else
-        SendChatMessage(msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
+        ok = pcall(SendChatMessage, msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
     end
-    if db.profile.debug then
+    if ok and db.profile.debug then
         addon:Print(string.format(L["Greeted %s."], name))
     end
     pending[name] = nil
@@ -459,12 +460,17 @@ function addon:SendTestGreeting()
         return
     end
     local target = (db.profile.delivery == "WHISPER") and name or nil
+    local ok
     if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
-        C_ChatInfo.SendChatMessage(msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
+        ok = pcall(C_ChatInfo.SendChatMessage, msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
     else
-        SendChatMessage(msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
+        ok = pcall(SendChatMessage, msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
     end
-    addon:Print(string.format(L["Test greeting sent to %s."], db.profile.delivery == "WHISPER" and name or L["guild chat"]))
+    if ok then
+        addon:Print(string.format(L["Test greeting sent to %s."], db.profile.delivery == "WHISPER" and name or L["guild chat"]))
+    else
+        addon:Print("Bears Greeter: could not send greeting (protected or unavailable).")
+    end
 end
 
 function addon:ResetToday()

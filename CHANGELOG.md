@@ -7,7 +7,7 @@
 - feat: add "Random greetings" option
     When on, picks a random greeting from a built-in list. When combined with Time of day greeting, the time-of-day greeting is included as one of the random options.
 - fix: avoid ADDON_ACTION_BLOCKED when sending greetings
-    Route sends through C_ChatInfo.SendChatMessage (with a pcall fallback to SendChatMessage) so timer callbacks can't trigger a protected call.
+    Defer sends during combat, and wrap SendChatMessage in pcall so a blocked call can't taint the addon.
 - feat: add "First name only" option at the top of the options panel
     When on, greetings use only the first word of the member's name (for example Newmo instead of Newmo Odell). Default off.
 - chore: default greeting is now "Welcome back <name>!" (comma removed)
