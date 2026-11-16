@@ -31,6 +31,47 @@ local initialRosterLoaded = false
 local rosterSettleUntil = 0
 local pending = {}
 
+-- Send queue: messages are queued here and sent one per frame to avoid
+-- taint issues when calling protected functions from event handlers.
+local sendQueue = {}
+local sendFrame = CreateFrame("Frame")
+sendFrame:SetScript("OnUpdate", function()
+    if #sendQueue == 0 then return end
+    if InCombatLockdown() or UnitAffectingCombat("player") then return end
+    local item = table.remove(sendQueue, 1)
+    local ok = false
+    -- Try SendChatMessage first (works on retail).
+    if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
+        ok = pcall(C_ChatInfo.SendChatMessage, item.msg, item.chatType, nil, item.target)
+    end
+    if not ok then
+        -- Fall back to chat edit box (more reliable on Classic/Forever).
+        local editBox = ChatFrame1EditBox or (DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.editBox)
+        if editBox then
+            local prevType = editBox:GetAttribute("chatType")
+            local prevTarget = editBox:GetAttribute("tellTarget")
+            editBox:SetAttribute("chatType", item.chatType)
+            if item.target then
+                editBox:SetAttribute("tellTarget", item.target)
+            end
+            editBox:SetText(item.msg)
+            ChatEdit_SendText(editBox, 0)
+            editBox:SetAttribute("chatType", prevType)
+            if prevTarget then
+                editBox:SetAttribute("tellTarget", prevTarget)
+            end
+            ok = true
+        else
+            ok = pcall(SendChatMessage, item.msg, item.chatType, nil, item.target)
+        end
+    end
+    if not ok then
+        table.insert(sendQueue, 1, item)
+    elseif item.onSuccess then
+        item.onSuccess()
+    end
+end)
+
 -- Members seen while the roster is still loading after login are recorded but not greeted.
 local ROSTER_SETTLE_SECONDS = 30
 
@@ -157,18 +198,6 @@ local function formatMessage(name)
     return msg
 end
 
-local function sendChat(msg, target)
-    -- Use C_ChatInfo.SendChatMessage when it exists; it is the non-deprecated
-    -- path and is safe to call from a timer callback. Fall back to the global.
-    local ok = false
-    if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
-        ok = pcall(C_ChatInfo.SendChatMessage, msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
-    else
-        ok = pcall(SendChatMessage, msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
-    end
-    return ok
-end
-
 local function doSend(name)
     if not db.profile.enabled then
         pending[name] = nil
@@ -186,24 +215,16 @@ local function doSend(name)
     local msg = formatMessage(name)
     local target = (db.profile.delivery == "WHISPER") and name or nil
     local chatType = db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD"
-    -- Defer the actual send to the next frame to break out of any tainted
-    -- call stack (e.g. when triggered through another addon's event chain).
-    C_Timer.After(0, function()
-        if InCombatLockdown() or UnitAffectingCombat("player") then
-            -- Re-defer: store as pending and wait for PLAYER_REGEN_ENABLED.
-            pending[name] = true
-            return
-        end
-        local ok
-        if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
-            ok = pcall(C_ChatInfo.SendChatMessage, msg, chatType, nil, target)
-        else
-            ok = pcall(SendChatMessage, msg, chatType, nil, target)
-        end
-        if ok and db.profile.debug then
+    -- Queue the send so it happens one per frame in a clean context,
+    -- avoiding taint from event handlers.
+    sendQueue[#sendQueue + 1] = {
+        msg = msg,
+        chatType = chatType,
+        target = target,
+        onSuccess = db.profile.debug and function()
             addon:Print(string.format(L["Greeted %s."], name))
-        end
-    end)
+        end or nil,
+    }
     pending[name] = nil
 end
 
@@ -428,14 +449,10 @@ end
 
 function addon:PLAYER_REGEN_ENABLED()
     -- Combat ended; send any greetings that were deferred.
-    -- Defer to the next frame so the send doesn't run in the event handler's
-    -- (possibly tainted) call stack.
     for name in pairs(pending) do
         if pending[name] == true then
-            local n = name
-            C_Timer.After(0, function()
-                doSend(n)
-            end)
+            pending[name] = nil
+            doSend(name)
         end
     end
 end
@@ -476,19 +493,14 @@ function addon:SendTestGreeting()
     end
     local target = (db.profile.delivery == "WHISPER") and name or nil
     local chatType = db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD"
-    C_Timer.After(0, function()
-        local ok
-        if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
-            ok = pcall(C_ChatInfo.SendChatMessage, msg, chatType, nil, target)
-        else
-            ok = pcall(SendChatMessage, msg, chatType, nil, target)
-        end
-        if ok then
+    sendQueue[#sendQueue + 1] = {
+        msg = msg,
+        chatType = chatType,
+        target = target,
+        onSuccess = function()
             addon:Print(string.format(L["Test greeting sent to %s."], db.profile.delivery == "WHISPER" and name or L["guild chat"]))
-        else
-            addon:Print("Bears Greeter: could not send greeting (protected or unavailable).")
-        end
-    end)
+        end,
+    }
 end
 
 function addon:ResetToday()
