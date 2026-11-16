@@ -185,15 +185,25 @@ local function doSend(name)
     end
     local msg = formatMessage(name)
     local target = (db.profile.delivery == "WHISPER") and name or nil
-    local ok
-    if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
-        ok = pcall(C_ChatInfo.SendChatMessage, msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
-    else
-        ok = pcall(SendChatMessage, msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
-    end
-    if ok and db.profile.debug then
-        addon:Print(string.format(L["Greeted %s."], name))
-    end
+    local chatType = db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD"
+    -- Defer the actual send to the next frame to break out of any tainted
+    -- call stack (e.g. when triggered through another addon's event chain).
+    C_Timer.After(0, function()
+        if InCombatLockdown() or UnitAffectingCombat("player") then
+            -- Re-defer: store as pending and wait for PLAYER_REGEN_ENABLED.
+            pending[name] = true
+            return
+        end
+        local ok
+        if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
+            ok = pcall(C_ChatInfo.SendChatMessage, msg, chatType, nil, target)
+        else
+            ok = pcall(SendChatMessage, msg, chatType, nil, target)
+        end
+        if ok and db.profile.debug then
+            addon:Print(string.format(L["Greeted %s."], name))
+        end
+    end)
     pending[name] = nil
 end
 
@@ -418,9 +428,14 @@ end
 
 function addon:PLAYER_REGEN_ENABLED()
     -- Combat ended; send any greetings that were deferred.
+    -- Defer to the next frame so the send doesn't run in the event handler's
+    -- (possibly tainted) call stack.
     for name in pairs(pending) do
         if pending[name] == true then
-            doSend(name)
+            local n = name
+            C_Timer.After(0, function()
+                doSend(n)
+            end)
         end
     end
 end
@@ -460,17 +475,20 @@ function addon:SendTestGreeting()
         return
     end
     local target = (db.profile.delivery == "WHISPER") and name or nil
-    local ok
-    if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
-        ok = pcall(C_ChatInfo.SendChatMessage, msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
-    else
-        ok = pcall(SendChatMessage, msg, db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD", nil, target)
-    end
-    if ok then
-        addon:Print(string.format(L["Test greeting sent to %s."], db.profile.delivery == "WHISPER" and name or L["guild chat"]))
-    else
-        addon:Print("Bears Greeter: could not send greeting (protected or unavailable).")
-    end
+    local chatType = db.profile.delivery == "WHISPER" and "WHISPER" or "GUILD"
+    C_Timer.After(0, function()
+        local ok
+        if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
+            ok = pcall(C_ChatInfo.SendChatMessage, msg, chatType, nil, target)
+        else
+            ok = pcall(SendChatMessage, msg, chatType, nil, target)
+        end
+        if ok then
+            addon:Print(string.format(L["Test greeting sent to %s."], db.profile.delivery == "WHISPER" and name or L["guild chat"]))
+        else
+            addon:Print("Bears Greeter: could not send greeting (protected or unavailable).")
+        end
+    end)
 end
 
 function addon:ResetToday()
