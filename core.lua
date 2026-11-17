@@ -40,12 +40,15 @@ sendFrame:SetScript("OnUpdate", function()
     if InCombatLockdown() or UnitAffectingCombat("player") then return end
     local item = table.remove(sendQueue, 1)
     local ok = false
-    -- Try SendChatMessage first (works on retail).
-    if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
-        ok = pcall(C_ChatInfo.SendChatMessage, item.msg, item.chatType, nil, item.target)
-    end
-    if not ok then
-        -- Fall back to chat edit box (more reliable on Classic/Forever).
+    -- On Forever, SendChatMessage("GUILD") is blocked from tainted contexts
+    -- (a known client bug). Use the chat edit box approach instead, which
+    -- goes through the normal chat send path. On retail, SendChatMessage works.
+    -- Detect Forever client by interface version (16001). On Forever,
+    -- SendChatMessage("GUILD") is blocked from tainted contexts (a known
+    -- client bug). Use the chat edit box instead.
+    local interfaceVer = select(4, GetBuildInfo())
+    local isForever = (interfaceVer == 16001)
+    if isForever then
         local editBox = ChatFrame1EditBox or (DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.editBox)
         if editBox then
             local prevType = editBox:GetAttribute("chatType")
@@ -61,6 +64,10 @@ sendFrame:SetScript("OnUpdate", function()
                 editBox:SetAttribute("tellTarget", prevTarget)
             end
             ok = true
+        end
+    else
+        if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
+            ok = pcall(C_ChatInfo.SendChatMessage, item.msg, item.chatType, nil, item.target)
         else
             ok = pcall(SendChatMessage, item.msg, item.chatType, nil, item.target)
         end
