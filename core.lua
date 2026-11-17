@@ -41,11 +41,7 @@ sendFrame:SetScript("OnUpdate", function()
     local item = table.remove(sendQueue, 1)
     local ok = false
     -- On Forever, SendChatMessage("GUILD") is blocked from tainted contexts
-    -- (a known client bug). Use the chat edit box approach instead, which
-    -- goes through the normal chat send path. On retail, SendChatMessage works.
-    -- Detect Forever client by interface version (16001). On Forever,
-    -- SendChatMessage("GUILD") is blocked from tainted contexts (a known
-    -- client bug). Use the chat edit box instead.
+    -- (a known client bug), so send through the chat edit box instead.
     local interfaceVer = select(4, GetBuildInfo())
     local isForever = (interfaceVer == 16001)
     if isForever then
@@ -59,6 +55,12 @@ sendFrame:SetScript("OnUpdate", function()
             end
             editBox:SetText(item.msg)
             ChatEdit_SendText(editBox, 0)
+            editBox:SetText("")
+            if ChatEdit_DeactivateChat then
+                ChatEdit_DeactivateChat(editBox)
+            else
+                editBox:Hide()
+            end
             editBox:SetAttribute("chatType", prevType)
             if prevTarget then
                 editBox:SetAttribute("tellTarget", prevTarget)
