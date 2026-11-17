@@ -12,6 +12,7 @@ L["Greet with only the first name, for example Newmo instead of Newmo Odell."] =
 L["Random greetings"] = true
 L["Pick a random greeting from a built-in list instead of the fixed message."] = true
 L["Random greeting list"] = true
+L["Timing"] = true
 L["Greetings used when Random greetings is on. Use <name> for the member's name."] = true
 L["Add greeting"] = true
 L["New greeting"] = true
