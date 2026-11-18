@@ -2,12 +2,16 @@
 
 ## Unreleased
 
+- chore: default delay changed from 15 to 20 seconds
+- feat: "Reset greetings to default" button in the random greeting list (asks for confirmation)
+- chore: default random greetings moved to greetings.lua
+    Edit the default list there. Saved greeting lists are not changed; add or remove entries in the options panel.
 - feat: add/remove random greetings
     The random greeting list is now editable. Add new greetings or remove existing ones from the options panel.
 - feat: add "Random greetings" option
     When on, picks a random greeting from a built-in list. When combined with Time of day greeting, the time-of-day greeting is included as one of the random options.
-- fix: avoid ADDON_ACTION_BLOCKED when sending greetings
-    On Forever (interface 16001), SendChatMessage("GUILD") is blocked from tainted contexts (a known client bug). Use the chat edit box approach instead. On retail, continue using SendChatMessage.
+- fix: reduce ADDON_ACTION_BLOCKED errors when sending greetings
+    Greetings are queued and sent one per frame, skipped during combat, and sends are wrapped in pcall. Forever can still block guild sends from addon code (a client issue under investigation).
 - feat: add "First name only" option at the top of the options panel
     When on, greetings use only the first word of the member's name (for example Newmo instead of Newmo Odell). Default off.
 - chore: default greeting is now "Welcome back <name>!" (comma removed)

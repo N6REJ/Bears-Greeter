@@ -90,9 +90,10 @@ character on the same realm is only greeted once per cache window.
 | First name only | Greet with only the first word of the name, for example Newmo instead of Newmo Odell. Affects Forever, where names can include a space. Default off. |
 | Random greetings | Pick a random greeting from a built-in list instead of the fixed message. When combined with Time of day greeting, the time-of-day greeting is one of the random options. Default off. |
 | Random greeting list | The list of greetings used when Random greetings is on. Add or remove entries. Use `<name>` for the member's name. |
+| Reset greetings to default | Replace the random greeting list with the defaults from `greetings.lua`, after a confirmation prompt. |
 | Enable greetings | Turn automatic greetings on or off. |
 | Trigger | Greet on login (on join) or on first guild chat message. |
-| Delay (seconds) | Seconds to wait after a member is seen before sending. Default 15. |
+| Delay (seconds) | Seconds to wait after a member is seen before sending. Default 20. |
 | Cache time (hours) | How long a member is remembered. Default 24 (until the calendar day changes). |
 | Time of day greeting | Use a Good Morning/Afternoon/Evening greeting based on server time (Morning 00:00-12:00, Afternoon 12:00-18:00, Evening 18:00-24:00). |
 | Greeting message | Template sent to chat. `<name>` is replaced with the member's name. |
@@ -122,6 +123,7 @@ pruned on load and on `PLAYER_ENTERING_WORLD`.
 
 ```text
 Bears_Greeter.toc          Addon manifest and load order
+greetings.lua              Default random greeting list (seeded into the saved list on first load)
 core.lua                   Addon lifecycle, guild chat handling, greeting logic, slash commands
 options.lua                AceConfig options panel
 Locales/                   AceLocale-3.0 localization files

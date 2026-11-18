@@ -11,7 +11,7 @@ local defaults = {
     profile = {
         enabled = true,
         trigger = "login", -- "login" or "guildchat"
-        delay = 15,
+        delay = 20,
         cacheHours = 24,
         message = "Welcome back <name>!",
         delivery = "GUILD",
@@ -40,39 +40,10 @@ sendFrame:SetScript("OnUpdate", function()
     if InCombatLockdown() or UnitAffectingCombat("player") then return end
     local item = table.remove(sendQueue, 1)
     local ok = false
-    -- On Forever, SendChatMessage("GUILD") is blocked from tainted contexts
-    -- (a known client bug), so send through the chat edit box instead.
-    local interfaceVer = select(4, GetBuildInfo())
-    local isForever = (interfaceVer == 16001)
-    if isForever then
-        local editBox = ChatFrame1EditBox or (DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.editBox)
-        if editBox then
-            local prevType = editBox:GetAttribute("chatType")
-            local prevTarget = editBox:GetAttribute("tellTarget")
-            editBox:SetAttribute("chatType", item.chatType)
-            if item.target then
-                editBox:SetAttribute("tellTarget", item.target)
-            end
-            editBox:SetText(item.msg)
-            ChatEdit_SendText(editBox, 0)
-            editBox:SetText("")
-            if ChatEdit_DeactivateChat then
-                ChatEdit_DeactivateChat(editBox)
-            else
-                editBox:Hide()
-            end
-            editBox:SetAttribute("chatType", prevType)
-            if prevTarget then
-                editBox:SetAttribute("tellTarget", prevTarget)
-            end
-            ok = true
-        end
+    if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
+        ok = pcall(C_ChatInfo.SendChatMessage, item.msg, item.chatType, nil, item.target)
     else
-        if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
-            ok = pcall(C_ChatInfo.SendChatMessage, item.msg, item.chatType, nil, item.target)
-        else
-            ok = pcall(SendChatMessage, item.msg, item.chatType, nil, item.target)
-        end
+        ok = pcall(SendChatMessage, item.msg, item.chatType, nil, item.target)
     end
     if not ok then
         table.insert(sendQueue, 1, item)
@@ -153,27 +124,6 @@ local function timeOfDayGreeting()
     end
 end
 
-local defaultRandomGreetings = {
-    "Hi <name>!",
-    "Welcome back, <name>!",
-    "Hey <name>, glad you're here!",
-    "Good to see you, <name>!",
-    "Hey there <name>, ready to adventure?",
-    "<name> has returned!",
-    "Welcome <name>, pull up a chair!",
-    "Great to see you again, <name>!",
-    "Welcome back <name>, hope you're doing well!",
-    "Hey <name>, the guild is glad you're here!",
-    "Welcome back <name>, let's get to work!",
-    "Hey <name>, nice to see you!",
-    "<name> has arrived!",
-    "Welcome <name>, we've been waiting!",
-    "Hey <name>, thanks for showing up!",
-    "Hey there <name>, glad you could make it!",
-    "Welcome back <name>, hope your day is going well!",
-    "<name>! Great to have you with us!",
-}
-
 local function formatMessage(name)
     if db.profile.firstNameOnly then
         name = name:match("^%S+") or name
@@ -181,7 +131,7 @@ local function formatMessage(name)
     if db.profile.randomGreetings then
         local list = db.profile.randomGreetingList
         if not list or #list == 0 then
-            list = defaultRandomGreetings
+            list = addonTable.DefaultRandomGreetings
         end
         local pool = {}
         for _, tmpl in ipairs(list) do
@@ -383,7 +333,7 @@ function addon:OnInitialize()
     addon.db = db
     if not db.profile.randomGreetingList or #db.profile.randomGreetingList == 0 then
         db.profile.randomGreetingList = {}
-        for _, tmpl in ipairs(defaultRandomGreetings) do
+        for _, tmpl in ipairs(addonTable.DefaultRandomGreetings) do
             db.profile.randomGreetingList[#db.profile.randomGreetingList + 1] = tmpl
         end
     end

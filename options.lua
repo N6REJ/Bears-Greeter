@@ -230,6 +230,23 @@ function addonTable.RegisterOptions(addon)
                     end
                 end,
             },
+            randomListReset = {
+                type = "execute",
+                order = 36,
+                width = "full",
+                name = L["Reset greetings to default"],
+                desc = L["Replace the random greeting list with the default greetings."],
+                confirm = true,
+                confirmText = L["Replace your random greeting list with the defaults? Custom greetings will be lost."],
+                func = function()
+                    local list = {}
+                    for i, tmpl in ipairs(addonTable.DefaultRandomGreetings) do
+                        list[i] = tmpl
+                    end
+                    db().randomGreetingList = list
+                    selectedGreetingIndex = nil
+                end,
+            },
 
             actionsHeader = {
                 type = "header",
