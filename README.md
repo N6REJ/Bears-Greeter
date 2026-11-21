@@ -79,6 +79,8 @@ character on the same realm is only greeted once per cache window.
 | `/greeter test` | Send a test greeting. |
 | `/greeter reset` | Clear today's greeted list. |
 | `/greeter toggle` | Turn greetings on or off. |
+| `/greeter debug` | Show or hide the debug log window. Click in the text box, press Ctrl+A then Ctrl+C to copy. Drag the title bar to move it. |
+| `/greeter debug clear` | Clear the debug log. |
 | `/greeter help` | Print command help. |
 
 `/bg` is an alias for `/greeter`.
@@ -98,7 +100,7 @@ character on the same realm is only greeted once per cache window.
 | Time of day greeting | Use a Good Morning/Afternoon/Evening greeting based on server time (Morning 00:00-12:00, Afternoon 12:00-18:00, Evening 18:00-24:00). |
 | Greeting message | Template sent to chat. `<name>` is replaced with the member's name. |
 | Delivery | Send to guild chat or whisper the member. |
-| Debug messages | Print a local message after each greeting. |
+| Debug messages | Log greeting activity (presence events, sends, send errors) to the debug window. Nothing is printed to chat. Open it with `/greeter debug`. |
 | Test | Send a test greeting using the current settings. |
 | Reset today | Clear the greeted list so members can be greeted again. |
 
@@ -106,11 +108,11 @@ Defaults are saved per Blizzard account in `BearsGreeterDB`.
 
 ## How it works
 
-In login trigger mode the addon watches `GUILD_ROSTER_UPDATE` for members coming
-online; in guild chat mode it listens to `CHAT_MSG_GUILD`. The first roster
-snapshot after login is only a baseline, and members seen during the following
-30 seconds are recorded without greeting, so logging in never greets everyone
-who is already online. Either way the member
+In login trigger mode the addon watches `GUILD_ROSTER_UPDATE` for guild members
+coming online. The first roster loaded after login is only a baseline.
+Members seen during the 30 seconds after login are recorded without greeting, so
+logging in never greets everyone who is already online. In guild chat mode it
+listens to `CHAT_MSG_GUILD`. Either way the member
 is normalized with `Ambiguate`, checked against the cache, marked as greeted
 before sending, and greeted after the configured delay. Greetings go out through
 `SendChatMessage` to guild chat or as a whisper.

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- feat: debug log window (`/greeter debug`) with a copyable text box and movable frame; `/greeter debug clear` empties it. Debug messages no longer print to chat.
+- chore: login detection uses GUILD_ROSTER_UPDATE again. CLUB_MEMBER_PRESENCE_UPDATED did not fire on the test clients.
+- chore: removed the per-frame send handler; queued greetings now go out one per 15 seconds using a timer that runs only while messages are waiting
 - chore: default delay changed from 15 to 20 seconds
 - feat: "Reset greetings to default" button in the random greeting list (asks for confirmation)
 - chore: default random greetings moved to greetings.lua

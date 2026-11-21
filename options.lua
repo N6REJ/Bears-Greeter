@@ -76,7 +76,7 @@ function addonTable.RegisterOptions(addon)
                 width = "relative",
                 relWidth = 0.33,
                 name = L["Debug messages"],
-                desc = L["Print a local message after each greeting."],
+                desc = L["Log greeting activity to the debug window (/greeter debug)."],
                 get = function() return db().debug end,
                 set = function(_, value) db().debug = value end,
             },

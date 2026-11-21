@@ -31,26 +31,139 @@ local initialRosterLoaded = false
 local rosterSettleUntil = 0
 local pending = {}
 
--- Send queue: messages are queued here and sent one per frame to avoid
--- taint issues when calling protected functions from event handlers.
+-- Send queue: one message per SEND_INTERVAL seconds. A timer runs only while
+-- messages are waiting, so there is no per-frame work when the queue is empty.
+local SEND_INTERVAL = 15
 local sendQueue = {}
-local sendFrame = CreateFrame("Frame")
-sendFrame:SetScript("OnUpdate", function()
-    if #sendQueue == 0 then return end
-    if InCombatLockdown() or UnitAffectingCombat("player") then return end
-    local item = table.remove(sendQueue, 1)
-    local ok = false
-    if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
-        ok = pcall(C_ChatInfo.SendChatMessage, item.msg, item.chatType, nil, item.target)
+local sendTimerActive = false
+local scheduleSendQueue
+
+local DEBUG_MAX_LINES = 500
+local debugLines = {}
+local debugWindow
+
+local function refreshDebugWindow()
+    if debugWindow and debugWindow:IsShown() then
+        debugWindow.edit:SetText(table.concat(debugLines, "\n"))
+    end
+end
+
+local function debugPrint(fmt, ...)
+    if not (db and db.profile.debug) then
+        return
+    end
+    debugLines[#debugLines + 1] = date("%H:%M:%S ") .. string.format(fmt, ...)
+    if #debugLines > DEBUG_MAX_LINES then
+        table.remove(debugLines, 1)
+    end
+    refreshDebugWindow()
+end
+
+local function createDebugWindow()
+    local f = CreateFrame("Frame", "BearsGreeterDebugFrame", UIParent, "BackdropTemplate")
+    f:SetSize(560, 360)
+    local pos = db.profile.debugWindowPos
+    if pos then
+        f:SetPoint(pos.point, UIParent, pos.relPoint, pos.x, pos.y)
     else
-        ok = pcall(SendChatMessage, item.msg, item.chatType, nil, item.target)
+        f:SetPoint("CENTER")
+    end
+    f:SetFrameStrata("DIALOG")
+    f:SetMovable(true)
+    f:SetClampedToScreen(true)
+    f:EnableMouse(true)
+    f:RegisterForDrag("LeftButton")
+    f:SetScript("OnDragStart", f.StartMoving)
+    f:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        local point, _, relPoint, x, y = self:GetPoint()
+        db.profile.debugWindowPos = { point = point, relPoint = relPoint, x = x, y = y }
+    end)
+    f:SetBackdrop({
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+        tile = true, tileSize = 32, edgeSize = 32,
+        insets = { left = 8, right = 8, top = 8, bottom = 8 },
+    })
+    f:Hide()
+
+    local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    title:SetPoint("TOP", f, "TOP", 0, -14)
+    title:SetText("Bears Greeter debug log")
+
+    local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
+    close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
+
+    local hint = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    hint:SetPoint("TOPLEFT", f, "TOPLEFT", 18, -40)
+    hint:SetText("Click in the box and press Ctrl+A, then Ctrl+C to copy. Drag the title bar to move.")
+
+    local scroll = CreateFrame("ScrollFrame", "BearsGreeterDebugScroll", f, "UIPanelScrollFrameTemplate")
+    scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 18, -60)
+    scroll:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -36, 18)
+
+    local edit = CreateFrame("EditBox", nil, scroll)
+    edit:SetMultiLine(true)
+    edit:SetAutoFocus(false)
+    edit:SetFontObject(ChatFontNormal)
+    edit:SetWidth(500)
+    edit:SetMaxLetters(0)
+    edit:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+    scroll:SetScrollChild(edit)
+    f.edit = edit
+
+    debugWindow = f
+    return f
+end
+
+local function toggleDebugWindow()
+    if not debugWindow then
+        createDebugWindow()
+    end
+    if debugWindow:IsShown() then
+        debugWindow:Hide()
+        return
+    end
+    debugWindow.edit:SetText(table.concat(debugLines, "\n"))
+    debugWindow:Show()
+end
+
+local function clearDebugLog()
+    wipe(debugLines)
+    refreshDebugWindow()
+end
+
+local function processSendQueue()
+    sendTimerActive = false
+    if #sendQueue == 0 then return end
+    if InCombatLockdown() or UnitAffectingCombat("player") then
+        debugPrint("send paused: in combat, %d queued", #sendQueue)
+        return
+    end
+    local item = table.remove(sendQueue, 1)
+    local ok, err
+    if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
+        ok, err = pcall(C_ChatInfo.SendChatMessage, item.msg, item.chatType, nil, item.target)
+    else
+        ok, err = pcall(SendChatMessage, item.msg, item.chatType, nil, item.target)
     end
     if not ok then
+        debugPrint("send failed (%s): %s", item.chatType, tostring(err))
         table.insert(sendQueue, 1, item)
-    elseif item.onSuccess then
+        scheduleSendQueue(SEND_INTERVAL)
+        return
+    end
+    if item.onSuccess then
         item.onSuccess()
     end
-end)
+    scheduleSendQueue(SEND_INTERVAL)
+end
+
+scheduleSendQueue = function(delay)
+    if sendTimerActive or #sendQueue == 0 then return end
+    sendTimerActive = true
+    C_Timer.After(delay or 0, processSendQueue)
+end
 
 -- Members seen while the roster is still loading after login are recorded but not greeted.
 local ROSTER_SETTLE_SECONDS = 30
@@ -180,10 +293,11 @@ local function doSend(name)
         msg = msg,
         chatType = chatType,
         target = target,
-        onSuccess = db.profile.debug and function()
-            addon:Print(string.format(L["Greeted %s."], name))
-        end or nil,
+        onSuccess = function()
+            debugPrint("greeted %s", name)
+        end,
     }
+    scheduleSendQueue(0)
     pending[name] = nil
 end
 
@@ -312,22 +426,6 @@ function addon:UpdateMinimapButton()
     end
 end
 
-local function getOnlineGuildMembers()
-    local result = {}
-    local num = GetNumGuildMembers() or 0
-    for i = 1, num do
-        local name, _, _, _, _, _, _, _, online = GetGuildRosterInfo(i)
-        if name and online then
-            local short = Ambiguate(name, "short")
-            if not short or short == "" then
-                short = name:match("^[^%-]+") or name
-            end
-            result[short] = true
-        end
-    end
-    return result
-end
-
 function addon:OnInitialize()
     db = LibStub("AceDB-3.0"):New("BearsGreeterDB", defaults, true)
     addon.db = db
@@ -346,7 +444,7 @@ function addon:OnEnable()
     self:RegisterEvent("GUILD_ROSTER_UPDATE")
     self:RegisterEvent("CHAT_MSG_GUILD")
     self:RegisterEvent("PLAYER_REGEN_ENABLED")
-    -- Request an initial roster so login detection has a baseline.
+    rosterSettleUntil = GetTime() + ROSTER_SETTLE_SECONDS
     if IsInGuild() then
         RequestGuildRoster()
     end
@@ -368,17 +466,31 @@ function addon:PLAYER_ENTERING_WORLD()
     -- Reset per-session online tracking so a reload does not re-greet everyone.
     wipe(knownOnline)
     initialRosterLoaded = false
+    rosterSettleUntil = GetTime() + ROSTER_SETTLE_SECONDS
     clearExpired()
 end
 
+local function getOnlineGuildMembers()
+    local result = {}
+    local num = GetNumGuildMembers() or 0
+    for i = 1, num do
+        local name, _, _, _, _, _, _, _, online = GetGuildRosterInfo(i)
+        if name and online then
+            local short = Ambiguate(name, "short")
+            if not short or short == "" then
+                short = name:match("^[^%-]+") or name
+            end
+            result[short] = true
+        end
+    end
+    return result
+end
+
 function addon:GUILD_ROSTER_UPDATE()
-    if db.profile.trigger ~= "login" then
+    if db.profile.trigger ~= "login" or not db.profile.enabled then
         return
     end
-    if not IsInGuild() then
-        return
-    end
-    if (GetNumGuildMembers() or 0) == 0 then
+    if not IsInGuild() or (GetNumGuildMembers() or 0) == 0 then
         return
     end
     local current = getOnlineGuildMembers()
@@ -387,14 +499,21 @@ function addon:GUILD_ROSTER_UPDATE()
             knownOnline[name] = true
         end
         initialRosterLoaded = true
-        rosterSettleUntil = GetTime() + ROSTER_SETTLE_SECONDS
+        local count = 0
+        for _ in pairs(current) do
+            count = count + 1
+        end
+        debugPrint("roster baseline loaded: %d online", count)
         return
     end
     local settling = GetTime() < rosterSettleUntil
     for name in pairs(current) do
         if not knownOnline[name] then
             knownOnline[name] = true
-            if not settling then
+            if settling then
+                debugPrint("%s online during login settle, not greeted", name)
+            else
+                debugPrint("%s came online, scheduling greeting", name)
                 scheduleGreeting(name)
             end
         end
@@ -402,6 +521,7 @@ function addon:GUILD_ROSTER_UPDATE()
     for name in pairs(knownOnline) do
         if not current[name] then
             knownOnline[name] = nil
+            debugPrint("%s offline", name)
         end
     end
 end
@@ -414,9 +534,10 @@ function addon:PLAYER_REGEN_ENABLED()
             doSend(name)
         end
     end
+    scheduleSendQueue(0)
 end
 
-function addon:CHAT_MSG_GUILD(message, sender)
+function addon:CHAT_MSG_GUILD(_, _, sender)
     if db.profile.trigger ~= "guildchat" then
         return
     end
@@ -440,6 +561,8 @@ local function printHelp()
     addon:Print("  /greeter test       " .. L["Send a test greeting."])
     addon:Print("  /greeter reset      " .. L["Clear today's greeted list."])
     addon:Print("  /greeter toggle     " .. L["Turn greetings on or off."])
+    addon:Print("  /greeter debug      " .. L["Show or hide the debug log window."])
+    addon:Print("  /greeter debug clear " .. L["Clear the debug log."])
     addon:Print("  /greeter help       " .. L["Show this help."])
 end
 
@@ -458,8 +581,13 @@ function addon:SendTestGreeting()
         target = target,
         onSuccess = function()
             addon:Print(string.format(L["Test greeting sent to %s."], db.profile.delivery == "WHISPER" and name or L["guild chat"]))
+            if db.profile.debug then
+                addon:Print("[debug] " .. msg)
+                debugPrint("test greeting sent: %s", msg)
+            end
         end,
     }
+    scheduleSendQueue(0)
 end
 
 function addon:ResetToday()
@@ -489,6 +617,10 @@ local function handleSlash(input)
         addon:ResetToday()
     elseif input == "toggle" then
         addon:ToggleEnabled()
+    elseif input == "debug" then
+        toggleDebugWindow()
+    elseif input == "debug clear" then
+        clearDebugLog()
     elseif input == "help" then
         printHelp()
     else
