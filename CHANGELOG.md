@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- feat: debug log now records client version, build, TOC, CVar, guild/trigger/delay settings, each send attempt with chatType, target and message, send success or failure with the error text, and ADDON_ACTION_BLOCKED/FORBIDDEN events for this addon
 - feat: debug log window (`/greeter debug`) with a copyable text box and movable frame; `/greeter debug clear` empties it. Debug messages no longer print to chat.
 - chore: login detection uses GUILD_ROSTER_UPDATE again. CLUB_MEMBER_PRESENCE_UPDATED did not fire on the test clients.
 - chore: removed the per-frame send handler; queued greetings now go out one per 15 seconds using a timer that runs only while messages are waiting

@@ -133,6 +133,16 @@ local function clearDebugLog()
     refreshDebugWindow()
 end
 
+local function logClientInfo()
+    local version, build, buildDate, tocVersion = GetBuildInfo()
+    debugPrint("client: version=%s build=%s date=%s toc=%s", tostring(version), tostring(build), tostring(buildDate), tostring(tocVersion))
+    debugPrint("addonChatRestrictionsForced=%s", tostring(GetCVar("addonChatRestrictionsForced")))
+    debugPrint("inGuild=%s inCombat=%s guildClubId=%s trigger=%s delivery=%s delay=%s",
+        tostring(IsInGuild()), tostring(UnitAffectingCombat("player")), tostring(C_Club and C_Club.GetGuildClubId and C_Club.GetGuildClubId()),
+        tostring(db.profile.trigger), tostring(db.profile.delivery), tostring(db.profile.delay))
+end
+addon_logClientInfo = logClientInfo
+
 local function processSendQueue()
     sendTimerActive = false
     if #sendQueue == 0 then return end
@@ -141,6 +151,7 @@ local function processSendQueue()
         return
     end
     local item = table.remove(sendQueue, 1)
+    debugPrint("sending: chatType=%s target=%s msg=%s", item.chatType, tostring(item.target), item.msg)
     local ok, err
     if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
         ok, err = pcall(C_ChatInfo.SendChatMessage, item.msg, item.chatType, nil, item.target)
@@ -148,11 +159,12 @@ local function processSendQueue()
         ok, err = pcall(SendChatMessage, item.msg, item.chatType, nil, item.target)
     end
     if not ok then
-        debugPrint("send failed (%s): %s", item.chatType, tostring(err))
+        debugPrint("send FAILED (%s): %s", item.chatType, tostring(err))
         table.insert(sendQueue, 1, item)
         scheduleSendQueue(SEND_INTERVAL)
         return
     end
+    debugPrint("send OK (%s)", item.chatType)
     if item.onSuccess then
         item.onSuccess()
     end
@@ -444,12 +456,15 @@ function addon:OnEnable()
     self:RegisterEvent("GUILD_ROSTER_UPDATE")
     self:RegisterEvent("CHAT_MSG_GUILD")
     self:RegisterEvent("PLAYER_REGEN_ENABLED")
+    self:RegisterEvent("ADDON_ACTION_BLOCKED")
+    self:RegisterEvent("ADDON_ACTION_FORBIDDEN")
     rosterSettleUntil = GetTime() + ROSTER_SETTLE_SECONDS
     if IsInGuild() then
         RequestGuildRoster()
     end
     self:CreateMinimapButton()
     self:Print(L["Loaded. Type /greeter to open options."])
+    logClientInfo()
 end
 
 function addon:OnDisable()
@@ -535,6 +550,20 @@ function addon:PLAYER_REGEN_ENABLED()
         end
     end
     scheduleSendQueue(0)
+end
+
+function addon:ADDON_ACTION_BLOCKED(event, addonName, func)
+    if addonName ~= "Bears_Greeter" then
+        return
+    end
+    debugPrint("ADDON_ACTION_BLOCKED: func=%s", tostring(func))
+end
+
+function addon:ADDON_ACTION_FORBIDDEN(event, addonName, func)
+    if addonName ~= "Bears_Greeter" then
+        return
+    end
+    debugPrint("ADDON_ACTION_FORBIDDEN: func=%s", tostring(func))
 end
 
 function addon:CHAT_MSG_GUILD(_, _, sender)
