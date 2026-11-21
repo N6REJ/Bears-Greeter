@@ -19,32 +19,31 @@
   </defs>
   <rect class="bg" x="0" y="0" width="1000" height="360" rx="16" />
   <text class="title" x="64" y="34">N6REJ/Bears-Greeter downloads</text>
-  <text class="sub" x="64" y="352">Generated 2026-11-18</text>
+  <text class="sub" x="64" y="352">Generated 2026-11-21</text>
   <line x1="64" y1="52.00" x2="976" y2="52.00" class="grid"/>
-  <text x="56" y="56.00" text-anchor="end" class="axis">174</text>
+  <text x="56" y="56.00" text-anchor="end" class="axis">192</text>
   <line x1="64" y1="94.00" x2="976" y2="94.00" class="grid"/>
-  <text x="56" y="98.00" text-anchor="end" class="axis">145</text>
+  <text x="56" y="98.00" text-anchor="end" class="axis">160</text>
   <line x1="64" y1="136.00" x2="976" y2="136.00" class="grid"/>
-  <text x="56" y="140.00" text-anchor="end" class="axis">116</text>
+  <text x="56" y="140.00" text-anchor="end" class="axis">128</text>
   <line x1="64" y1="178.00" x2="976" y2="178.00" class="grid"/>
-  <text x="56" y="182.00" text-anchor="end" class="axis">87</text>
+  <text x="56" y="182.00" text-anchor="end" class="axis">96</text>
   <line x1="64" y1="220.00" x2="976" y2="220.00" class="grid"/>
-  <text x="56" y="224.00" text-anchor="end" class="axis">58</text>
+  <text x="56" y="224.00" text-anchor="end" class="axis">64</text>
   <line x1="64" y1="262.00" x2="976" y2="262.00" class="grid"/>
-  <text x="56" y="266.00" text-anchor="end" class="axis">29</text>
+  <text x="56" y="266.00" text-anchor="end" class="axis">32</text>
   <line x1="64" y1="304.00" x2="976" y2="304.00" class="grid"/>
   <text x="56" y="308.00" text-anchor="end" class="axis">0</text>
-  <path d="M 64.00 304 L 64.00 296.76 L 134.15 279.38 L 204.31 257.66 L 274.46 225.79 L 344.62 222.90 L 414.77 209.86 L 484.92 191.03 L 555.08 154.83 L 625.23 131.66 L 695.38 130.21 L 765.54 130.21 L 835.69 117.17 L 905.85 78.07 L 976.00 52.00 L 976.00 304 Z" fill="url(#fill-total-trend-black)"/>
-  <polyline class="line" points="64.00,296.76 134.15,279.38 204.31,257.66 274.46,225.79 344.62,222.90 414.77,209.86 484.92,191.03 555.08,154.83 625.23,131.66 695.38,130.21 765.54,130.21 835.69,117.17 905.85,78.07 976.00,52.00"/>
+  <path d="M 64.00 304 L 64.00 297.44 L 121.00 281.69 L 178.00 262.00 L 235.00 233.13 L 292.00 230.50 L 349.00 218.69 L 406.00 201.63 L 463.00 168.81 L 520.00 147.81 L 577.00 146.50 L 634.00 146.50 L 691.00 134.69 L 748.00 99.25 L 805.00 75.63 L 862.00 57.25 L 919.00 53.31 L 976.00 52.00 L 976.00 304 Z" fill="url(#fill-total-trend-black)"/>
+  <polyline class="line" points="64.00,297.44 121.00,281.69 178.00,262.00 235.00,233.13 292.00,230.50 349.00,218.69 406.00,201.63 463.00,168.81 520.00,147.81 577.00,146.50 634.00,146.50 691.00,134.69 748.00,99.25 805.00,75.63 862.00,57.25 919.00,53.31 976.00,52.00"/>
   <circle class="dot" cx="976.00" cy="52.00" r="4.5"/>
   
   <text class="axis" x="64.00" y="336" text-anchor="start">2026-11-05</text>
-  <text class="axis" x="204.31" y="336" text-anchor="middle">2026-11-07</text>
-  <text class="axis" x="344.62" y="336" text-anchor="middle">2026-11-09</text>
-  <text class="axis" x="484.92" y="336" text-anchor="middle">2026-11-11</text>
-  <text class="axis" x="625.23" y="336" text-anchor="middle">2026-11-13</text>
-  <text class="axis" x="765.54" y="336" text-anchor="middle">2026-11-15</text>
-  <text class="axis" x="905.85" y="336" text-anchor="middle">2026-11-17</text>
-  <text class="axis" x="976.00" y="336" text-anchor="end">2026-11-18</text>
-  <text class="latest" x="976" y="34" text-anchor="end">Latest total: 174</text>
+  <text class="axis" x="235.00" y="336" text-anchor="middle">2026-11-08</text>
+  <text class="axis" x="406.00" y="336" text-anchor="middle">2026-11-11</text>
+  <text class="axis" x="577.00" y="336" text-anchor="middle">2026-11-14</text>
+  <text class="axis" x="748.00" y="336" text-anchor="middle">2026-11-17</text>
+  <text class="axis" x="919.00" y="336" text-anchor="middle">2026-11-20</text>
+  <text class="axis" x="976.00" y="336" text-anchor="end">2026-11-21</text>
+  <text class="latest" x="976" y="34" text-anchor="end">Latest total: 192</text>
 </svg>
