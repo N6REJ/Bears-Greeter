@@ -21,6 +21,7 @@ local defaults = {
         firstNameOnly = false,
         randomGreetings = false,
         randomGreetingList = nil,
+        debugLog = {},
         minimap = { hide = false, minimapButtonAngle = 225 },
     },
 }
@@ -37,10 +38,32 @@ local SEND_INTERVAL = 15
 local sendQueue = {}
 local sendTimerActive = false
 local scheduleSendQueue
+local sendBlocked = false
+local probeBlocked = false
 
 local DEBUG_MAX_LINES = 500
 local debugLines = {}
 local debugWindow
+
+local function loadDebugLog()
+    wipe(debugLines)
+    local saved = db and db.profile and db.profile.debugLog
+    if type(saved) == "table" then
+        for i = 1, #saved do
+            debugLines[i] = saved[i]
+        end
+    end
+end
+
+local function saveDebugLog()
+    if not (db and db.profile) then
+        return
+    end
+    db.profile.debugLog = {}
+    for i = 1, #debugLines do
+        db.profile.debugLog[i] = debugLines[i]
+    end
+end
 
 local function refreshDebugWindow()
     if debugWindow and debugWindow:IsShown() then
@@ -56,6 +79,7 @@ local function debugPrint(fmt, ...)
     if #debugLines > DEBUG_MAX_LINES then
         table.remove(debugLines, 1)
     end
+    saveDebugLog()
     refreshDebugWindow()
 end
 
@@ -130,6 +154,7 @@ end
 
 local function clearDebugLog()
     wipe(debugLines)
+    saveDebugLog()
     refreshDebugWindow()
 end
 
@@ -152,16 +177,17 @@ local function processSendQueue()
     end
     local item = table.remove(sendQueue, 1)
     debugPrint("sending: chatType=%s target=%s msg=%s", item.chatType, tostring(item.target), item.msg)
+    sendBlocked = false
     local ok, err
     if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
         ok, err = pcall(C_ChatInfo.SendChatMessage, item.msg, item.chatType, nil, item.target)
     else
         ok, err = pcall(SendChatMessage, item.msg, item.chatType, nil, item.target)
     end
-    if not ok then
-        debugPrint("send FAILED (%s): %s", item.chatType, tostring(err))
-        table.insert(sendQueue, 1, item)
-        scheduleSendQueue(SEND_INTERVAL)
+    if sendBlocked or not ok then
+        debugPrint("send BLOCKED (%s): pcall=%s err=%s", item.chatType, tostring(ok), tostring(err))
+        -- Don't retry: the client blocks this send. Re-queuing would just
+        -- produce the same error every SEND_INTERVAL seconds.
         return
     end
     debugPrint("send OK (%s)", item.chatType)
@@ -452,6 +478,7 @@ end
 
 function addon:OnEnable()
     clearExpired()
+    loadDebugLog()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
     self:RegisterEvent("GUILD_ROSTER_UPDATE")
     self:RegisterEvent("CHAT_MSG_GUILD")
@@ -465,6 +492,26 @@ function addon:OnEnable()
     self:CreateMinimapButton()
     self:Print(L["Loaded. Type /greeter to open options."])
     logClientInfo()
+    -- Probe whether delayed guild sends are still blocked on this client.
+    -- Only runs when Debug messages is on, to avoid spamming normal users.
+    if db.profile.debug and IsInGuild() then
+        C_Timer.After(5, function()
+            debugPrint("probe: sending delayed test guild message")
+            probeBlocked = false
+            C_Timer.After(2, function()
+                if probeBlocked then
+                    debugPrint("probe: delayed guild send BLOCKED (client bug present)")
+                else
+                    debugPrint("probe: delayed guild send OK (client bug fixed)")
+                end
+            end)
+            if C_ChatInfo and type(C_ChatInfo.SendChatMessage) == "function" then
+                C_ChatInfo.SendChatMessage("Bears Greeter probe", "GUILD")
+            else
+                SendChatMessage("Bears Greeter probe", "GUILD")
+            end
+        end)
+    end
 end
 
 function addon:OnDisable()
@@ -556,6 +603,8 @@ function addon:ADDON_ACTION_BLOCKED(event, addonName, func)
     if addonName ~= "Bears_Greeter" then
         return
     end
+    sendBlocked = true
+    probeBlocked = true
     debugPrint("ADDON_ACTION_BLOCKED: func=%s", tostring(func))
 end
 

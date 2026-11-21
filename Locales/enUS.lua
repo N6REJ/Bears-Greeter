@@ -15,6 +15,7 @@ L["Random greeting list"] = true
 L["Timing"] = true
 L["Show or hide the debug log window."] = true
 L["Clear the debug log."] = true
+L["Clear debug log"] = true
 L["Log greeting activity to the debug window (/greeter debug)."] = true
 L["Reset greetings to default"] = true
 L["Replace the random greeting list with the default greetings."] = true

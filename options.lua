@@ -282,6 +282,17 @@ function addonTable.RegisterOptions(addon)
                     addon:ResetToday()
                 end,
             },
+            debugLogClear = {
+                type = "execute",
+                order = 44,
+                width = "relative",
+                relWidth = 0.48,
+                name = L["Clear debug log"],
+                desc = L["Clear the debug log."],
+                func = function()
+                    clearDebugLog()
+                end,
+            },
         },
     }
 

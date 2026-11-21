@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- fix: ADDON_ACTION_BLOCKED now sets a flag that prevents the greeting from being logged as sent. Blocked sends are no longer retried, since the client blocks them repeatedly.
 - feat: debug log now records client version, build, TOC, CVar, guild/trigger/delay settings, each send attempt with chatType, target and message, send success or failure with the error text, and ADDON_ACTION_BLOCKED/FORBIDDEN events for this addon
 - feat: debug log window (`/greeter debug`) with a copyable text box and movable frame; `/greeter debug clear` empties it. Debug messages no longer print to chat.
 - chore: login detection uses GUILD_ROSTER_UPDATE again. CLUB_MEMBER_PRESENCE_UPDATED did not fire on the test clients.
