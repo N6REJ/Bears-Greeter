@@ -549,6 +549,8 @@ local function getOnlineGuildMembers()
 end
 
 function addon:GUILD_ROSTER_UPDATE()
+    debugPrint("roster update: trigger=%s enabled=%s inGuild=%s numMembers=%s",
+        tostring(db.profile.trigger), tostring(db.profile.enabled), tostring(IsInGuild()), tostring(GetNumGuildMembers()))
     if db.profile.trigger ~= "login" or not db.profile.enabled then
         return
     end
