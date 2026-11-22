@@ -40,11 +40,11 @@ Charts are generated on the first run. Customize them freely; only the data tabl
 
 | Metric | Value |
 |---|---|
-| Total | 192 |
-| Day | 1 |
-| Week | 63 |
-| Month | 187 (partial) |
-| Year | 187 (partial) |
+| Total | 209 |
+| Day | 17 |
+| Week | 80 |
+| Month | 204 (partial) |
+| Year | 204 (partial) |
 
 | Field | Value |
 |---|---|
@@ -53,9 +53,9 @@ Charts are generated on the first run. Customize them freely; only the data tabl
 | Update mode | daily |
 | Period | week `2026-W47`, month `Nov 2026`, year `2026` |
 | Window | 365 days |
-| Snapshots | 17 |
+| Snapshots | 18 |
 | Partial | month, year |
-| Generated at | `2026-11-21T05:47:59.598Z` |
+| Generated at | `2026-11-22T05:18:30.185Z` |
 
 Source data: [`stats/downloads.json`](https://raw.githubusercontent.com/N6REJ/Bears-Greeter/main/stats/downloads.json)
 
